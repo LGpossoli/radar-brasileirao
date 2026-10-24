@@ -1,0 +1,92 @@
+{
+  "probabilities": {
+    "home_win": 0.5348380117459817,
+    "draw": 0.25421495787047865,
+    "away_win": 0.2109470303835397
+  },
+  "home": {
+    "team_id": "flamengo",
+    "name": "Flamengo",
+    "games_available": 892,
+    "recent_form": [
+      "D",
+      "V",
+      "E",
+      "V",
+      "E"
+    ],
+    "points_percentage_5": 53.333333333333336,
+    "points_percentage_10": 60.0,
+    "goals_scored_5": 1.8,
+    "goals_conceded_5": 1.2,
+    "venue_points_percentage_10": 80.0,
+    "venue_goals_scored_10": 2.5,
+    "venue_goals_conceded_10": 0.7,
+    "elo": 1713.9955235801501,
+    "limited_history": false
+  },
+  "away": {
+    "team_id": "palmeiras",
+    "name": "Palmeiras",
+    "games_available": 810,
+    "recent_form": [
+      "E",
+      "E",
+      "D",
+      "V",
+      "V"
+    ],
+    "points_percentage_5": 53.333333333333336,
+    "points_percentage_10": 50.0,
+    "goals_scored_5": 1.6,
+    "goals_conceded_5": 0.8,
+    "venue_points_percentage_10": 43.333333333333336,
+    "venue_goals_scored_10": 1.7,
+    "venue_goals_conceded_10": 1.4,
+    "elo": 1699.9282537568738,
+    "limited_history": false
+  },
+  "head_to_head": [
+    {
+      "date": "2025-10-19",
+      "home": "Flamengo",
+      "away": "Palmeiras",
+      "home_goals": 3,
+      "away_goals": 2
+    },
+    {
+      "date": "2025-05-25",
+      "home": "Palmeiras",
+      "away": "Flamengo",
+      "home_goals": 0,
+      "away_goals": 2
+    },
+    {
+      "date": "2024-08-11",
+      "home": "Flamengo",
+      "away": "Palmeiras",
+      "home_goals": 1,
+      "away_goals": 1
+    },
+    {
+      "date": "2024-04-21",
+      "home": "Palmeiras",
+      "away": "Flamengo",
+      "home_goals": 0,
+      "away_goals": 0
+    },
+    {
+      "date": "2023-11-08",
+      "home": "Flamengo",
+      "away": "Palmeiras",
+      "home_goals": 3,
+      "away_goals": 0
+    }
+  ],
+  "model_version": "4d679e37eb31",
+  "data_through": "2025-12-07",
+  "trained_through": "2025-12-07",
+  "warnings": [
+    "Confronto hipotético com dados até 2025-12-07; não incorpora acontecimentos posteriores, escalações ou lesões."
+  ]
+}
