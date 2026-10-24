@@ -26,3 +26,12 @@ As probabilidades se referem ao histórico até 07/12/2025, não a partidas atua
 Gravar o vídeo com apresentação pessoal, disponibilizá-lo no Google Drive, inserir o link no README
 e submeter ambos os links no AVA. O repositório não constitui submissão automática no AVA.
 Não foi publicado no site pessoal, conforme decisão de deixar essa etapa para depois.
+
+## Revisão da interface
+
+- 29 testes aprovados após a revisão; Ruff aprovado.
+- Painel conferido no navegador em 1280 × 720, sem rolagem na tela principal.
+- Inversão real: Flamengo × Palmeiras passa para Palmeiras × Flamengo e recalcula as probabilidades.
+- Menu de três pontos com leitura e download do README; controles de desenvolvimento ocultos.
+- Testes cobrem cores alternativas de clubes semelhantes e contraste mínimo de 4,5:1 nos rótulos do gráfico.
+- Em telas pequenas, o layout se reorganiza e permite rolagem para não ocultar conteúdo.
