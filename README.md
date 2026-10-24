@@ -91,6 +91,28 @@ Tipos incorretos, campos faltantes ou extras retornam **422**. Clubes iguais/des
 Falhas inesperadas retornam **500** com mensagem controlada e log no servidor. Dados/modelo ausentes impedem
 a inicialização com instrução clara. Apenas artefatos joblib locais e confiáveis devem ser carregados.
 
+## Interface e leitura dos indicadores
+
+A tela usa a largura disponível e apresenta três painéis: probabilidades, desempenho e confrontos diretos.
+Em um monitor de 1280 × 720, o painel principal foi conferido sem rolagem. Em telas menores, as áreas se
+reorganizam e a rolagem é preservada quando necessária para não cortar conteúdo ou reduzir sua legibilidade.
+
+- Escolher um clube atualiza a análise. **Inverter** troca mandante e visitante e recalcula imediatamente.
+- **Analisar** força uma nova consulta para a seleção atual.
+- O gráfico de pizza em rosca usa as cores dos clubes; quando as principais são próximas, escolhe cores
+  secundárias da paleta de cada equipe. Empate usa cinza. Os rótulos continuam distinguindo os resultados.
+- Percentuais usam vírgula decimal. Textos das fatias alternam entre branco e preto para contraste mínimo de 4,5:1.
+- Aproveitamento é a porcentagem dos pontos possíveis. Gols são médias por partida.
+- “No mando” significa jogos em casa para o mandante e fora para o visitante, nos últimos dez disponíveis.
+- A sequência V/E/D vai do jogo mais antigo ao mais recente: vitória, empate e derrota.
+- Percentuais exatos somam 100%; valores arredondados podem diferir em 0,1 ponto percentual.
+- As probabilidades não incorporam fatos posteriores à data informada no rodapé, nem escalações ou lesões.
+- O menu **⋮** contém o README para leitura dentro da aplicação e download. Explicações ficam neste documento.
+
+Deploy, captura de tela e gravação eram controles de desenvolvimento do Streamlit. Foram removidos da
+interface de uso, substituindo o menu padrão por um menu próprio em português. A captura não é necessária
+para funcionamento do Radar. O gráfico não contém barra de ferramentas em inglês.
+
 ## Modelo e avaliação
 
 Pré-processamento e modelo formam um único pipeline. Variáveis: aproveitamento e gols em janelas de 5/10 jogos,
