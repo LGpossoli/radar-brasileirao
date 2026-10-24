@@ -1,0 +1,52 @@
+{
+  "source_rows": 9165,
+  "duplicates_removed": 0,
+  "quarantined_ambiguous_fixtures": [
+    {
+      "id": "2826",
+      "date": "2009-07-19",
+      "home": "botafogo-rj",
+      "away": "flamengo"
+    },
+    {
+      "id": "3016",
+      "date": "2009-10-25",
+      "home": "botafogo-rj",
+      "away": "flamengo"
+    }
+  ],
+  "rows": 9163,
+  "first_date": "2003-03-29",
+  "last_date": "2025-12-07",
+  "seasons": {
+    "2003": 552,
+    "2004": 552,
+    "2005": 462,
+    "2006": 380,
+    "2007": 380,
+    "2008": 380,
+    "2009": 378,
+    "2010": 380,
+    "2011": 380,
+    "2012": 380,
+    "2013": 380,
+    "2014": 380,
+    "2015": 380,
+    "2016": 379,
+    "2017": 380,
+    "2018": 380,
+    "2019": 380,
+    "2020": 380,
+    "2021": 380,
+    "2022": 380,
+    "2023": 380,
+    "2024": 380,
+    "2025": 380
+  },
+  "source": "https://www.kaggle.com/datasets/adaoduque/campeonato-brasileiro-de-futebol",
+  "download_origin": "https://www.kaggle.com/api/v1/datasets/download/adaoduque/campeonato-brasileiro-de-futebol?datasetVersionNumber=18",
+  "imported_at": "2026-10-24T18:57:15.002206+00:00",
+  "raw_sha256": "4e5bee3000f27dfa71f30389aa4af11c03725393a82d8814fb373659ee94891b",
+  "normalized_sha256": "710cc925ed84a97e01e7a34bace6f06b3d82b3dd706c2285096de45f5f724650",
+  "schema_version": 1
+}
