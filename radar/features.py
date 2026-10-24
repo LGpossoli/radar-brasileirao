@@ -1,12 +1,21 @@
 """Indicadores pré-jogo. Atualizações acontecem somente após processar o dia inteiro."""
+
 from collections import defaultdict
 
 import numpy as np
 import pandas as pd
 
 FEATURE_VERSION = 1
-METRICS = ["points5", "points10", "scored5", "conceded5", "venue_points10",
-           "venue_scored10", "venue_conceded10", "history_count"]
+METRICS = [
+    "points5",
+    "points10",
+    "scored5",
+    "conceded5",
+    "venue_points10",
+    "venue_scored10",
+    "venue_conceded10",
+    "history_count",
+]
 FEATURES = [f"{side}_{key}" for side in ["home", "away"] for key in METRICS] + ["elo_difference"]
 
 
@@ -51,11 +60,19 @@ class History:
             changes[home] += delta
             changes[away] -= delta
             for club, opponent, venue, scored, conceded, points in [
-                (home, away, "H", row["hg"], row["ag"], 3 if actual == 1 else 1 if actual == .5 else 0),
-                (away, home, "A", row["ag"], row["hg"], 3 if actual == 0 else 1 if actual == .5 else 0),
+                (home, away, "H", row["hg"], row["ag"], 3 if actual == 1 else 1 if actual == 0.5 else 0),
+                (away, home, "A", row["ag"], row["hg"], 3 if actual == 0 else 1 if actual == 0.5 else 0),
             ]:
-                self.games[club].append({"date": row["date"], "opponent": opponent, "venue": venue,
-                                         "scored": scored, "conceded": conceded, "points": points})
+                self.games[club].append(
+                    {
+                        "date": row["date"],
+                        "opponent": opponent,
+                        "venue": venue,
+                        "scored": scored,
+                        "conceded": conceded,
+                        "points": points,
+                    }
+                )
             self.names[home], self.names[away] = row["home_name"], row["away_name"]
             self.matches.append(row)
         for club, delta in changes.items():
@@ -68,8 +85,14 @@ def build_features(matches: pd.DataFrame) -> tuple[pd.DataFrame, History]:
     for _, group in matches.sort_values(["date", "id"]).groupby("date", sort=True):
         records = group.to_dict(orient="records")
         for row in records:
-            rows.append({**history.vector(row["home"], row["away"]),
-                         "result": row["result"], "season": row["season"], "id": row["id"]})
+            rows.append(
+                {
+                    **history.vector(row["home"], row["away"]),
+                    "result": row["result"],
+                    "season": row["season"],
+                    "id": row["id"],
+                }
+            )
         history.update_day(records)
     return pd.DataFrame(rows), history
 
@@ -78,17 +101,21 @@ def summarize(history: History, club: str, venue: str) -> dict:
     values = history.indicators(club, venue)
     games = history.games[club]
     return {
-        "team_id": club, "name": history.names.get(club, club), "games_available": len(games),
+        "team_id": club,
+        "name": history.names.get(club, club),
+        "games_available": len(games),
         "recent_form": [{3: "V", 1: "E", 0: "D"}[g["points"]] for g in games[-5:]],
         "points_percentage_5": None if not games else values["points5"] / 3 * 100,
         "points_percentage_10": None if not games else values["points10"] / 3 * 100,
         "goals_scored_5": None if not games else values["scored5"],
         "goals_conceded_5": None if not games else values["conceded5"],
-        "venue_points_percentage_10": None if np.isnan(values["venue_points10"])
+        "venue_points_percentage_10": None
+        if np.isnan(values["venue_points10"])
         else values["venue_points10"] / 3 * 100,
-        "venue_goals_scored_10": None if np.isnan(values["venue_scored10"])
-        else values["venue_scored10"],
-        "venue_goals_conceded_10": None if np.isnan(values["venue_conceded10"])
+        "venue_goals_scored_10": None if np.isnan(values["venue_scored10"]) else values["venue_scored10"],
+        "venue_goals_conceded_10": None
+        if np.isnan(values["venue_conceded10"])
         else values["venue_conceded10"],
-        "elo": history.elo[club], "limited_history": len(games) < 10,
+        "elo": history.elo[club],
+        "limited_history": len(games) < 10,
     }

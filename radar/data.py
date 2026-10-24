@@ -1,4 +1,5 @@
 """Importação auditável. Um ponteiro atômico ativa um snapshot imutável."""
+
 import argparse
 import hashlib
 import io
@@ -28,8 +29,16 @@ def team_id(name: str) -> str:
 def normalize(raw: bytes) -> tuple[pd.DataFrame, dict]:
     frame = pd.read_csv(io.BytesIO(raw))
     frame = frame.rename(columns={"rodata": "rodada"})
-    required = ["ID", "rodada", "data", "mandante", "visitante", "mandante_Placar",
-                "visitante_Placar", "vencedor"]
+    required = [
+        "ID",
+        "rodada",
+        "data",
+        "mandante",
+        "visitante",
+        "mandante_Placar",
+        "visitante_Placar",
+        "vencedor",
+    ]
     missing = set(required) - set(frame.columns)
     if missing:
         raise ValueError(f"Colunas obrigatórias ausentes: {sorted(missing)}")
@@ -65,22 +74,40 @@ def normalize(raw: bytes) -> tuple[pd.DataFrame, dict]:
     # Uma rodada 1 adiada para janeiro não pode iniciar uma temporada nova.
     seasons = dates.dt.year.copy()
     seasons.loc[(dates >= "2021-01-01") & (dates < "2021-03-01")] = 2020
-    clean = pd.DataFrame({
-        "id": frame["ID"].astype(str), "date": dates.dt.strftime("%Y-%m-%d"),
-        "season": seasons, "round": frame["rodada"], "home": home, "away": away,
-        "home_name": frame["mandante"].str.strip(), "away_name": frame["visitante"].str.strip(),
-        "hg": hg, "ag": ag, "result": result,
-    }).sort_values(["date", "id"]).reset_index(drop=True)
+    clean = (
+        pd.DataFrame(
+            {
+                "id": frame["ID"].astype(str),
+                "date": dates.dt.strftime("%Y-%m-%d"),
+                "season": seasons,
+                "round": frame["rodada"],
+                "home": home,
+                "away": away,
+                "home_name": frame["mandante"].str.strip(),
+                "away_name": frame["visitante"].str.strip(),
+                "hg": hg,
+                "ag": ag,
+                "result": result,
+            }
+        )
+        .sort_values(["date", "id"])
+        .reset_index(drop=True)
+    )
     ambiguous = clean.duplicated(["season", "home", "away"], keep=False)
     quarantined = clean.loc[ambiguous, ["id", "date", "home", "away"]].to_dict(orient="records")
     # Não adivinha qual mando está correto: exclui ambos do modelo e registra a evidência.
     clean = clean.loc[~ambiguous].reset_index(drop=True)
     if clean.empty:
         raise ValueError("Base vazia.")
-    return clean, {"source_rows": source_rows, "duplicates_removed": duplicates,
-                   "quarantined_ambiguous_fixtures": quarantined,
-                   "rows": len(clean), "first_date": clean.date.min(), "last_date": clean.date.max(),
-                   "seasons": {str(k): int(v) for k, v in clean.groupby("season").size().items()}}
+    return clean, {
+        "source_rows": source_rows,
+        "duplicates_removed": duplicates,
+        "quarantined_ambiguous_fixtures": quarantined,
+        "rows": len(clean),
+        "first_date": clean.date.min(),
+        "last_date": clean.date.max(),
+        "seasons": {str(k): int(v) for k, v in clean.groupby("season").size().items()},
+    }
 
 
 def atomic_json(path: Path, value: dict) -> None:
@@ -110,9 +137,15 @@ def import_bytes(raw: bytes, directory: Path = DATA_DIR, origin: str = SOURCE) -
     snapshot.mkdir(parents=True, exist_ok=True)
     records = clean.to_dict(orient="records")
     normalized_hash = hashlib.sha256(json.dumps(records, sort_keys=True).encode()).hexdigest()
-    metadata = {**audit, "source": SOURCE, "download_origin": origin,
-                "imported_at": datetime.now(timezone.utc).isoformat(), "raw_sha256": digest,
-                "normalized_sha256": normalized_hash, "schema_version": 1}
+    metadata = {
+        **audit,
+        "source": SOURCE,
+        "download_origin": origin,
+        "imported_at": datetime.now(timezone.utc).isoformat(),
+        "raw_sha256": digest,
+        "normalized_sha256": normalized_hash,
+        "schema_version": 1,
+    }
     (snapshot / "source.csv").write_bytes(raw)
     atomic_json(snapshot / "snapshot.json", {"metadata": metadata, "matches": records})
     atomic_json(current, {"snapshot": f"snapshots/{digest}/snapshot.json"})
@@ -148,11 +181,11 @@ def main():
     args = parser.parse_args()
     version = args.version
     if not args.file and version is None:
-        with urllib.request.urlopen("https://www.kaggle.com/api/v1/datasets/list?search="
-                                    "campeonato-brasileiro-de-futebol", timeout=30) as response:
+        with urllib.request.urlopen(
+            "https://www.kaggle.com/api/v1/datasets/list?search=campeonato-brasileiro-de-futebol", timeout=30
+        ) as response:
             entries = json.load(response)
-        entry = next(item for item in entries
-                     if item["ref"] == "adaoduque/campeonato-brasileiro-de-futebol")
+        entry = next(item for item in entries if item["ref"] == "adaoduque/campeonato-brasileiro-de-futebol")
         version = int(entry["currentVersionNumber"])
     raw = args.file.read_bytes() if args.file else download(version)
     origin = "Arquivo local da base Kaggle" if args.file else f"{DOWNLOAD}?datasetVersionNumber={version}"
