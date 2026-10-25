@@ -90,6 +90,40 @@ class Team(Contract):
 
 
 class Teams(Contract):
+    model_name: str
     season: int
     data_through: date
     teams: list[Team]
+
+
+class SimulationInput(Contract):
+    year: int = Field(strict=True)
+    seed: int = Field(strict=True, ge=0, le=4294967295)
+
+    @model_validator(mode="after")
+    def future_year(self):
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+
+        current = datetime.now(ZoneInfo("America/Sao_Paulo")).year
+        if not current < self.year <= current + 5:
+            raise ValueError("Escolha um dos próximos cinco anos.")
+        return self
+
+
+class Standing(Contract):
+    team_id: str
+    points: int = Field(ge=0)
+    played: int = Field(ge=0)
+    wins: int = Field(ge=0)
+    draws: int = Field(ge=0)
+    losses: int = Field(ge=0)
+
+
+class Simulation(Contract):
+    year: int
+    seed: int
+    rounds: list[list[Standing]]
+    model_name: str
+    model_version: str
+    data_through: date

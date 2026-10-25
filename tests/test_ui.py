@@ -15,7 +15,10 @@ def fake_api(service, monkeypatch):
     def predict(*args, **kwargs):
         response = Mock()
         data = kwargs["json"]
-        response.json.return_value = service.predict(data["home_team_id"], data["away_team_id"])
+        if args[0].endswith("/v1/simulate"):
+            response.json.return_value = service.simulate(data["year"], data["seed"])
+        else:
+            response.json.return_value = service.predict(data["home_team_id"], data["away_team_id"])
         return response
 
     post = Mock(side_effect=predict)
@@ -41,7 +44,7 @@ def test_swap_updates_selectors_and_recalculates(service, monkeypatch):
     app = AppTest.from_file(str(ROOT / "ui" / "app.py")).run()
     button(app, "⇄ Inverter").click().run()
     assert not app.exception
-    assert [item.value for item in app.selectbox] == ["santos", "flamengo"]
+    assert [item.value for item in app.selectbox][:2] == ["santos", "flamengo"]
     assert post.call_args.kwargs["json"] == {"home_team_id": "santos", "away_team_id": "flamengo"}
     assert app.session_state["analysis"]["home"]["team_id"] == "santos"
 
@@ -88,3 +91,24 @@ def test_percentages_use_brazilian_decimal_separator(service):
     html = dashboard(service.predict("flamengo", "santos"))
     assert "50,0%" in html and "25,0%" in html
     assert "50.0%" not in html
+
+
+def test_simulation_renders_and_year_change_resets_it(service, monkeypatch):
+    import time
+
+    fake_api(service, monkeypatch)
+    monkeypatch.setattr(time, "sleep", lambda seconds: None)
+    app = AppTest.from_file(str(ROOT / "ui" / "app.py")).run()
+    button(app, "Simular campeonato").click().run()
+    assert not app.exception
+    assert any("Rodada 2 de 2" in item.value for item in app.markdown)
+    assert app.session_state["simulation"]["model_name"] == "Frequências históricas"
+    app.selectbox[2].select(app.selectbox[2].value + 1).run()
+    assert not app.exception
+    assert any("Rodada 0 de 2" in item.value for item in app.markdown)
+
+
+def test_pie_has_no_internal_stroke(service):
+    html = dashboard(service.predict("flamengo", "santos"))
+    assert html.count("<path ") == 3
+    assert html.count('stroke="none"') == 3

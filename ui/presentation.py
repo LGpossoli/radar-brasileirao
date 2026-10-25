@@ -76,18 +76,17 @@ def donut(probabilities, labels, colors):
         sweep = probability * 360
         if sweep <= 0:
             continue
-        # Arcos separados também permitem representar probabilidade exatamente igual a um.
-        for start, span in [(angle, sweep / 2), (angle + sweep / 2, sweep / 2)]:
-            p1 = (130 + 112 * math.cos(math.radians(start)), 130 + 112 * math.sin(math.radians(start)))
-            p2 = (
-                130 + 112 * math.cos(math.radians(start + span)),
-                130 + 112 * math.sin(math.radians(start + span)),
-            )
-            parts.append(
-                f'<path d="M130 130 L{p1[0]:.3f} {p1[1]:.3f} A112 112 0 0 1 '
-                f'{p2[0]:.3f} {p2[1]:.3f} Z" fill="{color}" stroke="#41514b" stroke-width="1">'
-                f"<title>{escape(label)}: {number(probability * 100)}%</title></path>"
-            )
+        start = math.radians(angle)
+        middle = math.radians(angle + sweep / 2)
+        end = math.radians(angle + sweep)
+        x1, y1 = 130 + 112 * math.cos(start), 130 + 112 * math.sin(start)
+        xm, ym = 130 + 112 * math.cos(middle), 130 + 112 * math.sin(middle)
+        x2, y2 = 130 + 112 * math.cos(end), 130 + 112 * math.sin(end)
+        parts.append(
+            f'<path d="M130 130 L{x1:.3f} {y1:.3f} A112 112 0 0 1 {xm:.3f} {ym:.3f} '
+            f'A112 112 0 0 1 {x2:.3f} {y2:.3f} Z" fill="{color}" stroke="none">'
+            f"<title>{escape(label)}: {number(probability * 100)}%</title></path>"
+        )
         if probability >= 0.06:
             mid = math.radians(angle + sweep / 2)
             parts.append(
@@ -143,7 +142,7 @@ def dashboard(result):
     meetings = []
     for game in result["head_to_head"]:
         year, month, day = game["date"].split("-")
-        # Match names come from the same catalog; normalize their accents for presentation.
+        # Uso os nomes do catálogo com os acentos exibidos na tela.
         from radar.data import team_id
 
         h = display_name(team_id(game["home"]), game["home"])
@@ -162,4 +161,19 @@ def dashboard(result):
         f'<div class="forms">{"".join(forms)}</div><div class="micro">¹ Últimos 10 no mando · Gols por jogo</div>'
         f'</section><section class="panel meetings"><h2>Confrontos diretos</h2>'
         f"{''.join(meetings) or '<p>Nenhum confronto disponível.</p>'}</section></div>"
+    )
+
+
+def standings(rows, labels, round_number, total_rounds=38):
+    body = "".join(
+        f"<tr><td>{position}</td><th>{escape(labels[row['team_id']])}</th>"
+        + "".join(f"<td>{row[field]}</td>" for field in ("points", "played", "wins", "draws", "losses"))
+        + "</tr>"
+        for position, row in enumerate(rows, 1)
+    )
+    return (
+        f'<div class="league-caption">Rodada {round_number} de {total_rounds} · Cenário hipotético</div>'
+        '<div class="league-table"><table><thead><tr><th>#</th><th>Clube</th>'
+        "<th>P</th><th>J</th><th>V</th><th>E</th><th>D</th></tr></thead>"
+        f"<tbody>{body}</tbody></table></div>"
     )

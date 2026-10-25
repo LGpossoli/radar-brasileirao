@@ -1,6 +1,6 @@
 # Radar do Brasileirão
 
-Compare dois clubes da Série A e explore probabilidades de vitória do mandante, empate e vitória do visitante.
+Neste projeto, comparo clubes da Série A e exploro probabilidades de vitória do mandante, empate e vitória do visitante.
 Aplicação em Python para torcedores e criadores de conteúdo, com painel Streamlit e API FastAPI.
 
 **Dados até 07/12/2025.** As estimativas representam esse histórico, não a força atual dos clubes em 2026.
@@ -8,13 +8,13 @@ Os clubes selecionáveis pertencem à edição mais recente disponível na base.
 
 ## Origem e auditoria dos dados
 
-Fonte escolhida: [Campeonato Brasileiro de Futebol — Adão Duque / Kaggle](https://www.kaggle.com/datasets/adaoduque/campeonato-brasileiro-de-futebol).
+Escolhi a fonte: [Campeonato Brasileiro de Futebol — Adão Duque / Kaggle](https://www.kaggle.com/datasets/adaoduque/campeonato-brasileiro-de-futebol).
 Versão utilizada: **18**, publicada pelo Kaggle em 05/02/2026, com licença indicada nos metadados como **GPL 2**.
-O projeto não redistribui o CSV bruto. Obtenha a base da fonte e preserve sua atribuição e condições de uso.
+Não redistribuo o CSV bruto neste projeto. Obtenha a base da fonte e preserve sua atribuição e condições de uso.
 
 O arquivo principal contém **9.165 partidas (2003–2025)**. Duas linhas com mando ambíguo (IDs 2826 e 3016)
 são colocadas em quarentena, resultando em **9.163 partidas utilizadas**. O CSV original permanece intacto.
-O manifesto registra origem, SHA-256, datas, contagens por temporada e registros excluídos.
+Registro no manifesto a origem, o SHA-256, as datas, as contagens por temporada e os registros excluídos.
 A temporada 2020 inclui partidas realizadas em janeiro/fevereiro de 2021.
 
 ## Instalação — Python 3.12
@@ -93,7 +93,7 @@ a inicialização com instrução clara. Apenas artefatos joblib locais e confi�
 
 ## Interface e leitura dos indicadores
 
-A tela usa a largura disponível e apresenta três painéis: probabilidades, desempenho e confrontos diretos.
+Organizei a tela em quatro áreas: probabilidades, desempenho, confrontos diretos e simulação de campeonatos.
 Em um monitor de 1280 × 720, o painel principal foi conferido sem rolagem. Em telas menores, as áreas se
 reorganizam e a rolagem é preservada quando necessária para não cortar conteúdo ou reduzir sua legibilidade.
 
@@ -107,7 +107,7 @@ reorganizam e a rolagem é preservada quando necessária para não cortar conte�
 - A sequência V/E/D vai do jogo mais antigo ao mais recente: vitória, empate e derrota.
 - Percentuais exatos somam 100%; valores arredondados podem diferir em 0,1 ponto percentual.
 - As probabilidades não incorporam fatos posteriores à data informada no rodapé, nem escalações ou lesões.
-- O menu **⋮** contém o README para leitura dentro da aplicação e download. Explicações ficam neste documento.
+- O menu **⋮** contém o README para leitura e atalhos para a documentação interativa, o estado do serviço e os clubes da API. Explicações ficam neste documento.
 
 Deploy, captura de tela e gravação eram controles de desenvolvimento do Streamlit. Foram removidos da
 interface de uso, substituindo o menu padrão por um menu próprio em português. A captura não é necessária
@@ -115,13 +115,13 @@ para funcionamento do Radar. O gráfico não contém barra de ferramentas em ing
 
 ## Modelo e avaliação
 
-Pré-processamento e modelo formam um único pipeline. Variáveis: aproveitamento e gols em janelas de 5/10 jogos,
+Reuni o pré-processamento e o modelo em um único pipeline. Uso as variáveis: aproveitamento e gols em janelas de 5/10 jogos,
 desempenho no mando e diferença Elo. Nenhuma informação da própria partida entra como preditor.
 Os jogos do mesmo dia são processados em bloco, evitando vazamento entre eles.
 
 Treino: **2003–2020**; validação: **2021–2022**; teste: **2023–2024**.
 Comparação: frequências históricas, Regressão Logística e HistGradientBoostingClassifier, com parâmetros fixos.
-Seleção por log loss de validação. O teste não escolhe modelo ou parâmetros.
+Escolho pelo menor log loss na validação. Reservo o teste para a avaliação final.
 
 Veja [métricas reais](reports/METRICAS.md), [relatório completo](reports/metrics.json) e
 [gráfico de calibração](reports/calibration.html). O artefato de produção é retreinado até 2025;
@@ -168,8 +168,32 @@ atômica, serialização, probabilidades, carregamento único, erros HTTP e inte
 
 Consulte [decisões e etapas](docs/PLANO_E_DECISOES.md) e [roteiro do vídeo](docs/ROTEIRO_VIDEO.md).
 Fluxo: branches de funcionalidade → `develop` → `main`, com PRs e branches preservadas.
-Desenvolvimento assistido por IA, conforme solicitado pelo responsável; o enunciado contém restrições a esse uso.
+Usei assistência de IA no desenvolvimento; o enunciado contém restrições a esse uso.
 
 **Vídeo no Google Drive: pendente de gravação pelo aluno.** Inserir o link real antes da submissão.
-Entrega no AVA: GitHub público e vídeo de até dez minutos, até 03/11/2026, conforme prazo informado pelo usuário.
+Entrega no AVA: GitHub público e vídeo de até dez minutos, até 03/11/2026, conforme o prazo que defini para a entrega.
 Confirmar horário no AVA. Não modificar a versão submetida antes da avaliação.
+
+
+## Como simulo os próximos campeonatos
+
+Escolho um dos cinco anos seguintes ao ano atual e clico em **Simular campeonato**.
+Uso os clubes da última temporada importada em turno e returno: 380 jogos, 38 rodadas,
+19 partidas em casa e 19 fora para cada clube. Mostro uma rodada por segundo, em cerca de
+38 segundos após a consulta à API. A tabela mantém seu tamanho enquanto reordeno as equipes.
+
+Para cada confronto, sorteio vitória, empate ou derrota com as probabilidades do pipeline
+treinado. Mantenho a força histórica constante; não alimento o modelo com partidas fictícias.
+O ano identifica o cenário, não modifica a força dos clubes. Não projeto transferências,
+acesso, rebaixamento ou o calendário oficial. Cada clique usa uma nova semente aleatória.
+Isso é uma simulação exploratória, não uma previsão validada para os próximos cinco anos.
+
+Uso três pontos por vitória e um por empate. Ordeno por pontos e vitórias; nos empates
+restantes, uso o identificador do clube para uma ordem estável. Não simulo placares e,
+por isso, não aplico saldo de gols nem todos os critérios oficiais de desempate.
+P = pontos; J = jogos; V = vitórias; E = empates; D = derrotas.
+
+`POST /v1/simulate` recebe `year` e `seed` (inteiro entre 0 e 4294967295).
+Devolvo as tabelas das rodadas, a semente, o algoritmo e a versão do modelo e a data dos dados.
+Com a mesma semente e os mesmos artefatos, reproduzo o resultado. A animação acontece
+na interface; a API não fica esperando os 38 segundos.
