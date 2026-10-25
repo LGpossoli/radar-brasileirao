@@ -39,3 +39,24 @@ button[kind="secondary"] {border-color:#52665c;}
 @media(max-width:1099px) {.brand-tag{display:none}.block-container{padding:1rem!important}.dashboard{grid-template-columns:minmax(230px,.85fr) minmax(340px,1.3fr)}.meetings{grid-column:1/-1;display:flex;gap:18px;align-items:center;flex-wrap:wrap}.meetings h2{font-size:16px;margin:0}.meeting{flex:1;min-width:120px;border:0}.score-row{gap:4px;font-size:11px}.prob-chart{height:220px}.panel{padding:14px}}
 @media(max-height:700px) and (min-width:1100px) {.block-container{padding-top:.6rem!important}.panel{padding:14px}.prob-chart{height:200px}.stats th,.stats td{padding:7px 4px}.meeting{padding:8px 0}.form-badge{height:22px;width:22px}.forms{margin-top:8px}.panel h2{font-size:19px}}
 @media(max-width:700px) {.dashboard{grid-template-columns:1fr}.meetings{grid-column:auto;display:block}.meeting{padding:10px 0;border-bottom:1px solid #34453d}.brand h1{font-size:20px}.brand-mark{font-size:24px}.panel{padding:16px}.prob-chart{height:220px}.bottom-line{flex-wrap:wrap;gap:6px}.stats{font-size:12px}}
+
+/* Mantenho as linhas e as colunas estáveis durante a simulação. */
+.dashboard{grid-template-columns:minmax(0,.85fr) minmax(0,1.3fr) minmax(0,.9fr);gap:10px;margin-top:0}
+.panel{height:500px;padding:12px;overflow:auto}
+.panel h2{font-size:18px}
+.stats{table-layout:fixed;font-size:11px}
+.stats th:first-child{width:52%}
+.stats th,.stats td{padding:8px 3px;height:38px}
+.stats thead th{font-size:10px;overflow-wrap:anywhere}
+.legend-row{font-size:11px;gap:5px}.legend-row strong{font-size:14px}
+.prob-chart{height:220px}.score-row{font-size:10px;gap:4px}
+.form-badge{width:18px;height:21px;margin-left:2px;font-size:10px}
+.league-title{font-family:Georgia,serif!important;font-size:18px!important;padding:0!important;margin:0!important}
+.league-caption{font-size:10px;color:#b9c9c1;margin:2px 0 5px}
+.league-table{height:384px;overflow:auto}
+.league-table table{table-layout:fixed;border-collapse:collapse;width:100%;font-size:10px}
+.league-table th,.league-table td{height:18px;padding:0 2px;border-bottom:1px solid #34453d;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.league-table th:nth-child(2){width:38%;text-align:left;overflow:hidden;text-overflow:ellipsis}
+.league-table tbody th{text-align:left;font-weight:400}
+.league-table tbody tr:first-child{background:#35482b;color:#e9ff9a}
+@media(max-width:1099px){.dashboard{grid-template-columns:1fr}.panel{height:auto;min-height:300px}.meetings{display:block}.league-table{height:440px}.league-table th,.league-table td{height:20px}}

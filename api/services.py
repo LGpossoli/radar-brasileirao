@@ -32,6 +32,31 @@ class PredictionService:
         if set(self.pipeline.classes_) != {"H", "D", "A"}:
             raise RuntimeError("Modelo não contém as três classes esperadas.")
 
+    def model_name(self):
+        algorithm = self.bundle.get("algorithm", "frequencias")
+        return {
+            "regressao_logistica": "Regressão Logística",
+            "frequencias": "Frequências históricas",
+            "gradient_boosting": "HistGradientBoostingClassifier",
+        }.get(algorithm, algorithm)
+
+    def simulate(self, year, seed):
+        from radar.simulation import schedule, simulate
+
+        fixtures = [pair for round_ in schedule(self.clubs) for pair in round_]
+        vectors = pd.DataFrame([self.history.vector(*pair) for pair in fixtures], columns=FEATURES)
+        estimates = self.pipeline.predict_proba(vectors)
+        order = [list(self.pipeline.classes_).index(label) for label in ("H", "D", "A")]
+        probabilities = {pair: row[order] for pair, row in zip(fixtures, estimates)}
+        return {
+            "year": year,
+            "seed": seed,
+            "rounds": simulate(self.clubs, probabilities, seed),
+            "model_name": self.model_name(),
+            "model_version": self.bundle["model_version"],
+            "data_through": self.metadata["last_date"],
+        }
+
     def health(self):
         return {
             "status": "ok",
@@ -44,6 +69,7 @@ class PredictionService:
     def teams(self):
         return {
             "season": self.season,
+            "model_name": self.model_name(),
             "data_through": self.metadata["last_date"],
             "teams": [{"id": club, "name": self.history.names[club]} for club in self.clubs],
         }

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request
 
-from api.schemas import Health, PredictInput, Prediction, Teams
+from api.schemas import Health, PredictInput, Prediction, Simulation, SimulationInput, Teams
 
 router = APIRouter()
 
@@ -31,3 +31,8 @@ def predict(payload: PredictInput, request: Request):
     if payload.home_team_id not in service.clubs or payload.away_team_id not in service.clubs:
         raise HTTPException(400, "Clube desconhecido ou ausente da temporada disponível.")
     return service.predict(payload.home_team_id, payload.away_team_id)
+
+
+@router.post("/v1/simulate", response_model=Simulation, tags=["Campeonato"])
+def simulate(payload: SimulationInput, request: Request):
+    return request.app.state.service.simulate(payload.year, payload.seed)

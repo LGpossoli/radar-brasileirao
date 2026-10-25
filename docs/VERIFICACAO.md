@@ -35,3 +35,13 @@ Não foi publicado no site pessoal, conforme decisão de deixar essa etapa para 
 - Menu de três pontos com leitura e download do README; controles de desenvolvimento ocultos.
 - Testes cobrem cores alternativas de clubes semelhantes e contraste mínimo de 4,5:1 nos rótulos do gráfico.
 - Em telas pequenas, o layout se reorganiza e permite rolagem para não ocultar conteúdo.
+
+
+## Revisão de 25/10/2026 — simulação
+
+Acrescentei a quarta coluna, o seletor dos cinco anos seguintes e a animação de uma rodada
+por segundo. Conferi 380 confrontos únicos, mando equilibrado e conservação dos pontos.
+Separei a simulação do histórico real e documentei os critérios simplificados de desempate.
+Mantive os atalhos para README, Swagger, health e clubes no menu.
+
+Validação desta revisão: 34 testes aprovados e ruff sem erros. Conferi a tela em 1280 × 720, incluindo a rodada 38 e o nome do modelo.
