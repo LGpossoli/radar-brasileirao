@@ -45,3 +45,5 @@ Separei a simulação do histórico real e documentei os critérios simplificado
 Mantive os atalhos para README, Swagger, health e clubes no menu.
 
 Validação desta revisão: 34 testes aprovados e ruff sem erros. Conferi a tela em 1280 × 720, incluindo a rodada 38 e o nome do modelo.
+
+Ajuste de espaço: concentrei os controles de confronto nas três primeiras colunas e subi os controles da simulação. A tabela do campeonato ganhou altura e fonte maior, sem alteração dos modelos.

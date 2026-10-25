@@ -70,19 +70,18 @@ def swap():
     st.session_state.home, st.session_state.away = st.session_state.away, st.session_state.home
 
 
-left, invert, right, action = st.columns([5, 1.45, 5, 2.3], vertical_alignment="bottom")
-with left:
-    st.selectbox("Mandante", ids, format_func=labels.get, key="home")
-with invert:
-    st.button("⇄ Inverter", on_click=swap, use_container_width=True, help="Inverter mandante e visitante")
-with right:
-    st.selectbox("Visitante", ids, format_func=labels.get, key="away")
-with action:
-    refresh = st.button("Analisar", type="primary", use_container_width=True)
-
 analysis_column, season_column = st.columns([3, 1.1], gap="small")
 
 with analysis_column:
+    left, invert, right, action = st.columns([3.5, 1.4, 3.5, 1.5], vertical_alignment="bottom")
+    with left:
+        st.selectbox("Mandante", ids, format_func=labels.get, key="home")
+    with invert:
+        st.button("⇄ Inverter", on_click=swap, use_container_width=True, help="Inverter mandante e visitante")
+    with right:
+        st.selectbox("Visitante", ids, format_func=labels.get, key="away")
+    with action:
+        refresh = st.button("Analisar", type="primary", use_container_width=True)
     home, away = st.session_state.home, st.session_state.away
     key = (home, away, catalog["data_through"])
     if home == away:

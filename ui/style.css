@@ -53,9 +53,9 @@ button[kind="secondary"] {border-color:#52665c;}
 .form-badge{width:18px;height:21px;margin-left:2px;font-size:10px}
 .league-title{font-family:Georgia,serif!important;font-size:18px!important;padding:0!important;margin:0!important}
 .league-caption{font-size:10px;color:#b9c9c1;margin:2px 0 5px}
-.league-table{height:384px;overflow:auto}
-.league-table table{table-layout:fixed;border-collapse:collapse;width:100%;font-size:10px}
-.league-table th,.league-table td{height:18px;padding:0 2px;border-bottom:1px solid #34453d;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.league-table{height:440px;overflow:auto}
+.league-table table{table-layout:fixed;border-collapse:collapse;width:100%;font-size:11px}
+.league-table th,.league-table td{height:20px;padding:0 2px;border-bottom:1px solid #34453d;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .league-table th:nth-child(2){width:38%;text-align:left;overflow:hidden;text-overflow:ellipsis}
 .league-table tbody th{text-align:left;font-weight:400}
 .league-table tbody tr:first-child{background:#35482b;color:#e9ff9a}
