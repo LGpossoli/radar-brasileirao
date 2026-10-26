@@ -47,3 +47,5 @@ Mantive os atalhos para README, Swagger, health e clubes no menu.
 Validação desta revisão: 34 testes aprovados e ruff sem erros. Conferi a tela em 1280 × 720, incluindo a rodada 38 e o nome do modelo.
 
 Ajuste de espaço: concentrei os controles de confronto nas três primeiras colunas e subi os controles da simulação. A tabela do campeonato ganhou altura e fonte maior, sem alteração dos modelos.
+
+Revisão dos três modelos: 37 testes aprovados. Conferi o alinhamento dos quatro painéis em 1280 × 720 e a troca de Regressão Logística para Random Forest na interface, com mudança das probabilidades. Os testes verificam os três modelos serializados, a seleção na API e a limpeza da simulação ao trocar o algoritmo.

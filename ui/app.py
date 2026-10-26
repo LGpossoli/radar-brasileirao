@@ -31,12 +31,32 @@ def show_readme():
     st.markdown(content)
 
 
-title, menu = st.columns([20, 1], vertical_alignment="center")
+try:
+    response = requests.get(f"{API}/v1/teams", timeout=10)
+    response.raise_for_status()
+    catalog = response.json()
+except (requests.RequestException, ValueError):
+    st.error("Serviço indisponível. Tente novamente em instantes.")
+    st.stop()
+
+
+title, model_control, menu = st.columns([12, 4, 0.8], vertical_alignment="center")
 with title:
     st.markdown(
         '<div class="brand"><span class="brand-mark">◉</span><h1>Radar do Brasileirão</h1>'
         '<span class="brand-tag">ANÁLISE DE CONFRONTOS</span></div>',
         unsafe_allow_html=True,
+    )
+with model_control:
+    if st.session_state.get("model_id") not in catalog["models"]:
+        st.session_state.model_id = catalog["default_model_id"]
+    model_id = st.selectbox(
+        "Modelo de predição",
+        list(catalog["models"]),
+        format_func=catalog["models"].get,
+        key="model_id",
+        label_visibility="collapsed",
+        help="Modelo usado no confronto e no campeonato",
     )
 with menu:
     with st.popover("⋮", help="Menu do projeto", use_container_width=True):
@@ -46,14 +66,6 @@ with menu:
         st.link_button("API · estado do serviço", f"{API}/health")
         st.link_button("API · clubes disponíveis", f"{API}/v1/teams")
 
-
-try:
-    response = requests.get(f"{API}/v1/teams", timeout=10)
-    response.raise_for_status()
-    catalog = response.json()
-except (requests.RequestException, ValueError):
-    st.error("Serviço indisponível. Tente novamente em instantes.")
-    st.stop()
 
 labels = {team["id"]: display_name(team["id"], team["name"]) for team in catalog["teams"]}
 ids = list(labels)
@@ -83,7 +95,7 @@ with analysis_column:
     with action:
         refresh = st.button("Analisar", type="primary", use_container_width=True)
     home, away = st.session_state.home, st.session_state.away
-    key = (home, away, catalog["data_through"])
+    key = (home, away, catalog["data_through"], model_id)
     if home == away:
         st.session_state.pop("analysis", None)
         st.session_state.pop("analysis_key", None)
@@ -93,7 +105,9 @@ with analysis_column:
             st.session_state.pop("analysis", None)
             try:
                 response = requests.post(
-                    f"{API}/v1/predict", json={"home_team_id": home, "away_team_id": away}, timeout=20
+                    f"{API}/v1/predict",
+                    json={"home_team_id": home, "away_team_id": away, "model_id": model_id},
+                    timeout=20,
                 )
                 response.raise_for_status()
                 st.session_state.analysis = response.json()
@@ -108,14 +122,13 @@ with analysis_column:
 
 
 with season_column:
-    st.markdown('<h2 class="league-title">Campeonatos futuros</h2>', unsafe_allow_html=True)
     year_column, run_column = st.columns([1, 1.7], vertical_alignment="bottom")
     with year_column:
         current_year = datetime.now(ZoneInfo("America/Sao_Paulo")).year
         selected_year = st.selectbox("Ano", range(current_year + 1, current_year + 6))
     with run_column:
-        run_simulation = st.button("Simular campeonato", use_container_width=True)
-    simulation_key = (selected_year, catalog["data_through"], tuple(ids))
+        run_simulation = st.button("Simular campeonato", type="primary", use_container_width=True)
+    simulation_key = (selected_year, catalog["data_through"], tuple(ids), model_id)
     if st.session_state.get("simulation_key") != simulation_key:
         st.session_state.pop("simulation", None)
         st.session_state.simulation_key = simulation_key
@@ -134,7 +147,9 @@ with season_column:
     if run_simulation:
         try:
             response = requests.post(
-                f"{API}/v1/simulate", json={"year": selected_year, "seed": secrets.randbits(32)}, timeout=30
+                f"{API}/v1/simulate",
+                json={"year": selected_year, "seed": secrets.randbits(32), "model_id": model_id},
+                timeout=30,
             )
             response.raise_for_status()
             simulation = response.json()
@@ -147,8 +162,6 @@ with season_column:
             st.session_state.simulation = simulation
         except (requests.RequestException, ValueError):
             st.error("Não consegui simular o campeonato. Tente novamente.")
-    model_name = simulation["model_name"] if simulation else catalog["model_name"]
-    st.caption(f"Modelo: {model_name}")
 
 
 year, month, day = catalog["data_through"].split("-")

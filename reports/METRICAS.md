@@ -6,7 +6,15 @@ Treino 2003–2020, validação 2021–2022, teste 2023–2024. Sem ajuste pelo 
 |---|---:|---:|---:|
 | frequencias | 1.0743 | 45.00% | 0.2069 |
 | regressao_logistica | 1.0363 | 47.11% | 0.2978 |
-| gradient_boosting | 1.0413 | 46.45% | 0.2976 |
+| arvore_decisao | 1.0521 | 46.84% | 0.2912 |
+| random_forest | 1.0371 | 46.71% | 0.2776 |
+
+| Modelo | Log loss teste | Acurácia teste |
+|---|---:|---:|
+| frequencias | 1.0613 | 47.11% |
+| regressao_logistica | 1.0388 | 47.50% |
+| arvore_decisao | 1.0465 | 48.42% |
+| random_forest | 1.0334 | 47.76% |
 
 Selecionado: **regressao_logistica**.
 

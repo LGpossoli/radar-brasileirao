@@ -11,12 +11,13 @@ import numpy as np
 import sklearn
 from sklearn.calibration import calibration_curve
 from sklearn.dummy import DummyClassifier
-from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, log_loss
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
+from sklearn.tree import DecisionTreeClassifier
 
 from radar.config import HISTORY_PATH, MODEL_PATH, ROOT
 from radar.data import atomic_json, load_snapshot
@@ -33,18 +34,19 @@ def candidates():
                 ("model", LogisticRegression(C=1.0, max_iter=2000, random_state=42)),
             ]
         ),
-        "gradient_boosting": Pipeline(
+        "arvore_decisao": Pipeline(
+            [
+                ("imputer", SimpleImputer(strategy="median")),
+                ("model", DecisionTreeClassifier(max_depth=5, min_samples_leaf=80, random_state=42)),
+            ]
+        ),
+        "random_forest": Pipeline(
             [
                 ("imputer", SimpleImputer(strategy="median")),
                 (
                     "model",
-                    HistGradientBoostingClassifier(
-                        max_iter=120,
-                        max_leaf_nodes=7,
-                        l2_regularization=5,
-                        learning_rate=0.05,
-                        early_stopping=False,
-                        random_state=42,
+                    RandomForestClassifier(
+                        n_estimators=300, max_depth=8, min_samples_leaf=30, n_jobs=2, random_state=42
                     ),
                 ),
             ]
@@ -89,9 +91,10 @@ def train():
     for name, model in models.items():
         model.fit(x[train_mask], y[train_mask])
         validation[name] = evaluate(model, x[val_mask], y[val_mask])
-    # O baseline também pode vencer: não escondemos desempenho inferior ao acaso informado.
+    # Comparo também com a referência; escolho o padrão pela validação, nunca pelo teste.
     winner = min(validation, key=lambda name: validation[name]["log_loss"])
-    test = evaluate(models[winner], x[test_mask], y[test_mask])
+    test_by_model = {name: evaluate(model, x[test_mask], y[test_mask]) for name, model in models.items()}
+    test = test_by_model[winner]
     baseline_test = evaluate(models["frequencias"], x[test_mask], y[test_mask])
     report = {
         "data": metadata,
@@ -101,6 +104,7 @@ def train():
             "test": int(test_mask.sum()),
         },
         "validation": validation,
+        "test_by_model": test_by_model,
         "selected": winner,
         "test": test,
         "baseline_test": baseline_test,
@@ -110,10 +114,13 @@ def train():
         "python": platform.python_version(),
         "sklearn": sklearn.__version__,
     }
-    production = candidates()[winner]
-    production.fit(x, y)
+    production_models = {name: model for name, model in candidates().items() if name != "frequencias"}
+    for model in production_models.values():
+        model.fit(x, y)
+    default_model = min(production_models, key=lambda name: validation[name]["log_loss"])
+    production = production_models[default_model]
     version = hashlib.sha256(
-        (metadata["raw_sha256"] + winner + str(FEATURE_VERSION) + sklearn.__version__).encode()
+        (metadata["raw_sha256"] + repr(candidates()) + str(FEATURE_VERSION) + sklearn.__version__).encode()
     ).hexdigest()[:12]
     bundle = {
         "pipeline": production,
@@ -122,7 +129,8 @@ def train():
         "model_version": version,
         "sklearn": sklearn.__version__,
         "data": metadata,
-        "algorithm": winner,
+        "algorithm": default_model,
+        "pipelines": production_models,
         "evaluated_test": test,
     }
     MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -134,6 +142,10 @@ def train():
         np.testing.assert_allclose(
             production.predict_proba(x.tail(10)), restored["pipeline"].predict_proba(x.tail(10))
         )
+        for name, model in production_models.items():
+            np.testing.assert_allclose(
+                model.predict_proba(x.tail(10)), restored["pipelines"][name].predict_proba(x.tail(10))
+            )
         os.replace(temp, MODEL_PATH)
     finally:
         if os.path.exists(temp):
@@ -143,7 +155,10 @@ def train():
         "Retreinado em todos os dados; métricas acima pertencem ao experimento separado."
     )
     atomic_json(ROOT / "reports" / "metrics.json", report)
-    atomic_json(ROOT / "models" / "metadata.json", {k: v for k, v in bundle.items() if k != "pipeline"})
+    atomic_json(
+        ROOT / "models" / "metadata.json",
+        {k: v for k, v in bundle.items() if k not in {"pipeline", "pipelines"}},
+    )
     lines = [
         "# Avaliação do modelo",
         "",
@@ -156,6 +171,9 @@ def train():
         lines.append(
             f"| {name} | {metrics['log_loss']:.4f} | {metrics['accuracy']:.2%} | {metrics['f1_macro']:.4f} |"
         )
+    lines += ["", "| Modelo | Log loss teste | Acurácia teste |", "|---|---:|---:|"]
+    for name, metrics in test_by_model.items():
+        lines.append(f"| {name} | {metrics['log_loss']:.4f} | {metrics['accuracy']:.2%} |")
     lines += [
         "",
         f"Selecionado: **{winner}**.",
