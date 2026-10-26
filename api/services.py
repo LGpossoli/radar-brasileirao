@@ -29,31 +29,42 @@ class PredictionService:
         last = matches[matches.season.eq(self.season)]
         self.clubs = sorted(set(last.home) | set(last.away))
         self.pipeline = self.bundle["pipeline"]
-        if set(self.pipeline.classes_) != {"H", "D", "A"}:
+        self.default_model = self.bundle.get("algorithm", "frequencias")
+        self.pipelines = self.bundle.get("pipelines", {self.default_model: self.pipeline})
+        if any(set(model.classes_) != {"H", "D", "A"} for model in self.pipelines.values()):
             raise RuntimeError("Modelo não contém as três classes esperadas.")
 
-    def model_name(self):
-        algorithm = self.bundle.get("algorithm", "frequencias")
+    def model_name(self, model_id=None):
+        algorithm = model_id or self.default_model
         return {
             "regressao_logistica": "Regressão Logística",
             "frequencias": "Frequências históricas",
-            "gradient_boosting": "HistGradientBoostingClassifier",
+            "arvore_decisao": "Árvore de Decisão",
+            "random_forest": "Random Forest",
         }.get(algorithm, algorithm)
 
-    def simulate(self, year, seed):
+    def select_model(self, model_id):
+        selected = model_id or self.default_model
+        if selected not in self.pipelines:
+            raise ValueError("Modelo desconhecido ou indisponível.")
+        return selected, self.pipelines[selected]
+
+    def simulate(self, year, seed, model_id=None):
         from radar.simulation import schedule, simulate
 
+        selected, pipeline = self.select_model(model_id)
         fixtures = [pair for round_ in schedule(self.clubs) for pair in round_]
         vectors = pd.DataFrame([self.history.vector(*pair) for pair in fixtures], columns=FEATURES)
-        estimates = self.pipeline.predict_proba(vectors)
-        order = [list(self.pipeline.classes_).index(label) for label in ("H", "D", "A")]
+        estimates = pipeline.predict_proba(vectors)
+        order = [list(pipeline.classes_).index(label) for label in ("H", "D", "A")]
         probabilities = {pair: row[order] for pair, row in zip(fixtures, estimates)}
         return {
             "year": year,
             "seed": seed,
             "rounds": simulate(self.clubs, probabilities, seed),
-            "model_name": self.model_name(),
-            "model_version": self.bundle["model_version"],
+            "model_name": self.model_name(selected),
+            "model_id": selected,
+            "model_version": self.bundle["model_version"] + ":" + selected,
             "data_through": self.metadata["last_date"],
         }
 
@@ -69,18 +80,21 @@ class PredictionService:
     def teams(self):
         return {
             "season": self.season,
+            "models": {key: self.model_name(key) for key in self.pipelines},
+            "default_model_id": self.default_model,
             "model_name": self.model_name(),
             "data_through": self.metadata["last_date"],
             "teams": [{"id": club, "name": self.history.names[club]} for club in self.clubs],
         }
 
-    def predict(self, home, away):
+    def predict(self, home, away, model_id=None):
+        selected, pipeline = self.select_model(model_id)
         if home == away:
             raise ValueError("Escolha dois clubes diferentes.")
         if home not in self.clubs or away not in self.clubs:
             raise ValueError("Clube desconhecido ou ausente da temporada disponível.")
         features = pd.DataFrame([self.history.vector(home, away)], columns=FEATURES)
-        values = dict(zip(self.pipeline.classes_, self.pipeline.predict_proba(features)[0]))
+        values = dict(zip(pipeline.classes_, pipeline.predict_proba(features)[0]))
         warnings = [
             f"Confronto hipotético com dados até {self.metadata['last_date']}; "
             "não incorpora acontecimentos posteriores, escalações ou lesões."
@@ -108,8 +122,10 @@ class PredictionService:
                 }
                 for m in h2h
             ],
-            "model_version": self.bundle["model_version"],
+            "model_version": self.bundle["model_version"] + ":" + selected,
             "data_through": self.metadata["last_date"],
             "trained_through": self.bundle["data"]["last_date"],
             "warnings": warnings,
+            "model_id": selected,
+            "model_name": self.model_name(selected),
         }

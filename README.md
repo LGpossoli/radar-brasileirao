@@ -120,7 +120,7 @@ desempenho no mando e diferença Elo. Nenhuma informação da própria partida e
 Os jogos do mesmo dia são processados em bloco, evitando vazamento entre eles.
 
 Treino: **2003–2020**; validação: **2021–2022**; teste: **2023–2024**.
-Comparação: frequências históricas, Regressão Logística e HistGradientBoostingClassifier, com parâmetros fixos.
+Comparação: frequências históricas, Regressão Logística, Árvore de Decisão e Random Forest, com parâmetros fixos.
 Escolho pelo menor log loss na validação. Reservo o teste para a avaliação final.
 
 Veja [métricas reais](reports/METRICAS.md), [relatório completo](reports/metrics.json) e
@@ -197,3 +197,22 @@ P = pontos; J = jogos; V = vitórias; E = empates; D = derrotas.
 Devolvo as tabelas das rodadas, a semente, o algoritmo e a versão do modelo e a data dos dados.
 Com a mesma semente e os mesmos artefatos, reproduzo o resultado. A animação acontece
 na interface; a API não fica esperando os 38 segundos.
+
+
+## Escolha do modelo
+
+No seletor do cabeçalho, escolho Regressão Logística, Árvore de Decisão ou Random Forest.
+A seleção vale para o confronto e para o campeonato. Ao trocar, recalculo o confronto e
+limpo a simulação anterior. Os três pipelines ficam carregados em memória; a seleção de
+um usuário não altera a de outro. O treinamento continua sendo feito pelo comando `python -m radar.train`.
+
+Uso C=1 na Regressão Logística; profundidade máxima 5 e pelo menos 80 exemplos por folha na
+Árvore; 300 árvores, profundidade máxima 8 e pelo menos 30 exemplos por folha na Random Forest.
+Defini esses parâmetros antes desta avaliação, sem otimizar pelo teste. Comparo com as frequências
+históricas e escolho o padrão entre os três classificadores pelo menor log loss na validação.
+Os resultados do teste 2023–2024 já tinham sido consultados na versão anterior: esta ampliação
+é uma comparação retrospectiva, não uma nova avaliação cega em dados nunca examinados.
+
+Posso enviar `model_id` em `/v1/predict` e `/v1/simulate`: `regressao_logistica`,
+`arvore_decisao` ou `random_forest`. Se omitir, uso o padrão. IDs desconhecidos retornam 400;
+tipos inválidos retornam 422. `/v1/teams` informa o catálogo e o modelo padrão.

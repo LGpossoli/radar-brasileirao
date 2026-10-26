@@ -60,3 +60,14 @@ button[kind="secondary"] {border-color:#52665c;}
 .league-table tbody th{text-align:left;font-weight:400}
 .league-table tbody tr:first-child{background:#35482b;color:#e9ff9a}
 @media(max-width:1099px){.dashboard{grid-template-columns:1fr}.panel{height:auto;min-height:300px}.meetings{display:block}.league-table{height:440px}.league-table th,.league-table td{height:20px}}
+
+/* Os quatro painéis compartilham dimensões, fundo e bordas. */
+.championship{height:500px;padding:12px;background:#14231f;border:1px solid #34453d;border-radius:12px}
+.championship h2{font-family:Georgia,serif;font-size:18px;margin:0 0 12px;padding:0;line-height:1.3}
+.league-table{height:400px;overflow:auto}
+.league-table table{background:transparent;font-size:11px}
+.league-table th,.league-table td{height:19px;border-color:#34453d;color:#edf3ee}
+.league-table thead th{background:#1c3027;color:#c7d6ce;font-weight:700}
+.league-table tbody tr:first-child{background:#24372d;color:#edf3ee}
+.league-caption{margin:0 0 10px}
+@media(max-width:700px){.championship{height:auto;min-height:490px}}

@@ -9,6 +9,7 @@ class Contract(BaseModel):
 
 
 class PredictInput(Contract):
+    model_id: str | None = Field(default=None, strict=True, min_length=1, max_length=60)
     home_team_id: str = Field(
         strict=True,
         min_length=1,
@@ -66,6 +67,8 @@ class Match(Contract):
 
 
 class Prediction(Contract):
+    model_id: str
+    model_name: str
     probabilities: Probabilities
     home: TeamSummary
     away: TeamSummary
@@ -90,6 +93,8 @@ class Team(Contract):
 
 
 class Teams(Contract):
+    models: dict[str, str]
+    default_model_id: str
     model_name: str
     season: int
     data_through: date
@@ -97,6 +102,7 @@ class Teams(Contract):
 
 
 class SimulationInput(Contract):
+    model_id: str | None = Field(default=None, strict=True, min_length=1, max_length=60)
     year: int = Field(strict=True)
     seed: int = Field(strict=True, ge=0, le=4294967295)
 
@@ -121,6 +127,7 @@ class Standing(Contract):
 
 
 class Simulation(Contract):
+    model_id: str
     year: int
     seed: int
     rounds: list[list[Standing]]

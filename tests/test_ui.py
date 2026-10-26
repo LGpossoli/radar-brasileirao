@@ -16,9 +16,11 @@ def fake_api(service, monkeypatch):
         response = Mock()
         data = kwargs["json"]
         if args[0].endswith("/v1/simulate"):
-            response.json.return_value = service.simulate(data["year"], data["seed"])
+            response.json.return_value = service.simulate(data["year"], data["seed"], data.get("model_id"))
         else:
-            response.json.return_value = service.predict(data["home_team_id"], data["away_team_id"])
+            response.json.return_value = service.predict(
+                data["home_team_id"], data["away_team_id"], data.get("model_id")
+            )
         return response
 
     post = Mock(side_effect=predict)
@@ -34,7 +36,11 @@ def test_ui_calls_api_and_displays_probabilities(service, monkeypatch):
     post = fake_api(service, monkeypatch)
     app = AppTest.from_file(str(ROOT / "ui" / "app.py")).run()
     assert not app.exception
-    assert post.call_args.kwargs["json"] == {"home_team_id": "flamengo", "away_team_id": "santos"}
+    assert post.call_args.kwargs["json"] == {
+        "home_team_id": "flamengo",
+        "away_team_id": "santos",
+        "model_id": "frequencias",
+    }
     assert any('class="prob-chart"' in item.value for item in app.markdown)
     assert any("Dados até 01/06/2021" in item.value for item in app.markdown)
 
@@ -44,15 +50,19 @@ def test_swap_updates_selectors_and_recalculates(service, monkeypatch):
     app = AppTest.from_file(str(ROOT / "ui" / "app.py")).run()
     button(app, "⇄ Inverter").click().run()
     assert not app.exception
-    assert [item.value for item in app.selectbox][:2] == ["santos", "flamengo"]
-    assert post.call_args.kwargs["json"] == {"home_team_id": "santos", "away_team_id": "flamengo"}
+    assert [item.value for item in app.selectbox][1:3] == ["santos", "flamengo"]
+    assert post.call_args.kwargs["json"] == {
+        "home_team_id": "santos",
+        "away_team_id": "flamengo",
+        "model_id": "frequencias",
+    }
     assert app.session_state["analysis"]["home"]["team_id"] == "santos"
 
 
 def test_same_team_clears_previous_analysis(service, monkeypatch):
     fake_api(service, monkeypatch)
     app = AppTest.from_file(str(ROOT / "ui" / "app.py")).run()
-    app.selectbox[1].select("flamengo").run()
+    app.selectbox[2].select("flamengo").run()
     assert not app.exception
     assert app.warning[0].value == "Escolha dois clubes diferentes."
     assert not any('class="prob-chart"' in item.value for item in app.markdown)
@@ -103,7 +113,7 @@ def test_simulation_renders_and_year_change_resets_it(service, monkeypatch):
     assert not app.exception
     assert any("Rodada 2 de 2" in item.value for item in app.markdown)
     assert app.session_state["simulation"]["model_name"] == "Frequências históricas"
-    app.selectbox[2].select(app.selectbox[2].value + 1).run()
+    app.selectbox[3].select(app.selectbox[3].value + 1).run()
     assert not app.exception
     assert any("Rodada 0 de 2" in item.value for item in app.markdown)
 
@@ -112,3 +122,20 @@ def test_pie_has_no_internal_stroke(service):
     html = dashboard(service.predict("flamengo", "santos"))
     assert html.count("<path ") == 3
     assert html.count('stroke="none"') == 3
+
+
+def test_switching_model_updates_prediction_and_clears_simulation(service, monkeypatch):
+    import time
+
+    service.pipelines["arvore_decisao"] = service.pipeline
+    fake_api(service, monkeypatch)
+    monkeypatch.setattr(time, "sleep", lambda seconds: None)
+    app = AppTest.from_file(str(ROOT / "ui" / "app.py")).run()
+    button(app, "Simular campeonato").click().run()
+    assert app.session_state["simulation"]["model_id"] == "frequencias"
+    app.selectbox(key="model_id").select("arvore_decisao").run()
+    assert not app.exception
+    assert app.session_state["analysis"]["model_id"] == "arvore_decisao"
+    assert any("Rodada 0 de 2" in item.value for item in app.markdown)
+    button(app, "Simular campeonato").click().run()
+    assert app.session_state["simulation"]["model_id"] == "arvore_decisao"
