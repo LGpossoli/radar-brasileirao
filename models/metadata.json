@@ -19,7 +19,7 @@
     "elo_difference"
   ],
   "feature_version": 1,
-  "model_version": "4d679e37eb31",
+  "model_version": "c6c004c517a2",
   "sklearn": "1.9.1",
   "data": {
     "source_rows": 9165,

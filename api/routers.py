@@ -30,9 +30,14 @@ def predict(payload: PredictInput, request: Request):
         raise HTTPException(400, "Escolha dois clubes diferentes.")
     if payload.home_team_id not in service.clubs or payload.away_team_id not in service.clubs:
         raise HTTPException(400, "Clube desconhecido ou ausente da temporada disponível.")
-    return service.predict(payload.home_team_id, payload.away_team_id)
+    if payload.model_id is not None and payload.model_id not in service.pipelines:
+        raise HTTPException(400, "Modelo desconhecido ou indisponível.")
+    return service.predict(payload.home_team_id, payload.away_team_id, payload.model_id)
 
 
 @router.post("/v1/simulate", response_model=Simulation, tags=["Campeonato"])
 def simulate(payload: SimulationInput, request: Request):
-    return request.app.state.service.simulate(payload.year, payload.seed)
+    service = request.app.state.service
+    if payload.model_id is not None and payload.model_id not in service.pipelines:
+        raise HTTPException(400, "Modelo desconhecido ou indisponível.")
+    return service.simulate(payload.year, payload.seed, payload.model_id)

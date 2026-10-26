@@ -172,8 +172,9 @@ def standings(rows, labels, round_number, total_rounds=38):
         for position, row in enumerate(rows, 1)
     )
     return (
+        '<section class="panel championship"><h2>Campeonatos futuros</h2>'
         f'<div class="league-caption">Rodada {round_number} de {total_rounds} · Cenário hipotético</div>'
         '<div class="league-table"><table><thead><tr><th>#</th><th>Clube</th>'
         "<th>P</th><th>J</th><th>V</th><th>E</th><th>D</th></tr></thead>"
-        f"<tbody>{body}</tbody></table></div>"
+        f"<tbody>{body}</tbody></table></div></section>"
     )

@@ -57,3 +57,34 @@ def test_internal_error_controlled_and_health_survives(service, monkeypatch):
 def test_missing_artifact_prevents_startup(tmp_path):
     with pytest.raises(RuntimeError, match="artefatos"):
         PredictionService(tmp_path / "missing", tmp_path / "current.json")
+
+
+def test_unknown_models_are_rejected(service):
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    with TestClient(create_app(lambda: service)) as client:
+        assert (
+            client.post(
+                "/v1/predict",
+                json={"home_team_id": "flamengo", "away_team_id": "santos", "model_id": "inexistente"},
+            ).status_code
+            == 400
+        )
+        assert (
+            client.post(
+                "/v1/predict", json={"home_team_id": "flamengo", "away_team_id": "santos", "model_id": 42}
+            ).status_code
+            == 422
+        )
+        assert (
+            client.post(
+                "/v1/simulate",
+                json={
+                    "year": datetime.now(ZoneInfo("America/Sao_Paulo")).year + 1,
+                    "seed": 1,
+                    "model_id": "inexistente",
+                },
+            ).status_code
+            == 400
+        )
