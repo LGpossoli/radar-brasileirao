@@ -1,14 +1,22 @@
+import logging
+
 import joblib
 import pandas as pd
 import sklearn
 
-from radar.config import HISTORY_PATH, MODEL_PATH
+from api.evaluation_schemas import EvaluationReport
+from radar.config import HISTORY_PATH, MODEL_PATH, ROOT
 from radar.data import load_snapshot
 from radar.features import FEATURE_VERSION, FEATURES, build_features, summarize
 
 
 class PredictionService:
-    def __init__(self, model_path=MODEL_PATH, history_path=HISTORY_PATH):
+    def __init__(
+        self,
+        model_path=MODEL_PATH,
+        history_path=HISTORY_PATH,
+        evaluation_path=ROOT / "reports/evaluation.json",
+    ):
         try:
             self.bundle = joblib.load(model_path)  # somente artefato local confiável
             self.metadata, matches = load_snapshot(history_path)
@@ -33,6 +41,38 @@ class PredictionService:
         self.pipelines = self.bundle.get("pipelines", {self.default_model: self.pipeline})
         if any(set(model.classes_) != {"H", "D", "A"} for model in self.pipelines.values()):
             raise RuntimeError("Modelo não contém as três classes esperadas.")
+
+        self.evaluation_report = None
+        try:
+            report = EvaluationReport.model_validate_json(evaluation_path.read_text(encoding="utf-8"))
+            if (
+                report.production_version != self.bundle["model_version"]
+                or report.dataset_sha256 != self.bundle["data"]["raw_sha256"]
+            ):
+                raise ValueError("Relatório não corresponde ao artefato carregado.")
+            self.evaluation_report = report
+        except (OSError, ValueError, TypeError) as exc:
+            logging.getLogger("radar.api").warning("Avaliação histórica indisponível: %s", exc)
+
+    def evaluation(self, model_id=None):
+        selected, _ = self.select_model(model_id)
+        report = self.evaluation_report
+        if report is None or selected not in report.models:
+            raise RuntimeError(
+                "Avaliação indisponível. Execute python -m radar.train para gerar o relatório."
+            )
+        result = report.models[selected]
+        return {
+            "experiment_id": report.experiment_id,
+            "periods": report.periods,
+            "retrospective": report.retrospective,
+            "selected_model": report.selected_model,
+            "model_id": selected,
+            "model_name": self.model_name(selected),
+            "metrics": result.metrics,
+            "comparison": {key: value.metrics for key, value in report.models.items()},
+            "matches": result.matches,
+        }
 
     def model_name(self, model_id=None):
         algorithm = model_id or self.default_model

@@ -114,6 +114,11 @@ def train():
         "python": platform.python_version(),
         "sklearn": sklearn.__version__,
     }
+    from api.evaluation_schemas import EvaluationReport
+    from radar.evaluation import test_predictions
+
+    # Capturo as previsões dos modelos experimentais antes de qualquer ajuste de produção.
+    individual_test = test_predictions(models, x[test_mask], features[test_mask], matches, test_by_model)
     production_models = {name: model for name, model in candidates().items() if name != "frequencias"}
     for model in production_models.values():
         model.fit(x, y)
@@ -122,6 +127,21 @@ def train():
     version = hashlib.sha256(
         (metadata["raw_sha256"] + repr(candidates()) + str(FEATURE_VERSION) + sklearn.__version__).encode()
     ).hexdigest()[:12]
+    evaluation_report = EvaluationReport.model_validate(
+        {
+            "experiment_id": "historico-" + version,
+            "production_version": version,
+            "dataset_sha256": metadata["raw_sha256"],
+            "periods": {
+                "train": "2003–2020",
+                "validation": "2021–2022",
+                "test": "2023–2024",
+                "production": f"{int(matches.season.min())}–{int(matches.season.max())}",
+            },
+            "selected_model": winner,
+            "models": individual_test,
+        }
+    )
     bundle = {
         "pipeline": production,
         "features": FEATURES,
@@ -155,6 +175,7 @@ def train():
         "Retreinado em todos os dados; métricas acima pertencem ao experimento separado."
     )
     atomic_json(ROOT / "reports" / "metrics.json", report)
+    atomic_json(ROOT / "reports" / "evaluation.json", evaluation_report.model_dump(mode="json"))
     atomic_json(
         ROOT / "models" / "metadata.json",
         {k: v for k, v in bundle.items() if k not in {"pipeline", "pipelines"}},

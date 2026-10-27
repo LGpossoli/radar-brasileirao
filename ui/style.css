@@ -71,3 +71,14 @@ button[kind="secondary"] {border-color:#52665c;}
 .league-table tbody tr:first-child{background:#24372d;color:#edf3ee}
 .league-caption{margin:0 0 10px}
 @media(max-width:700px){.championship{height:auto;min-height:490px}}
+
+.simulation-control-label{font-size:12px;color:#c7d6ce;font-weight:600;height:34px;min-height:34px;margin-bottom:0}
+.stage{background:#14231f;border:1px solid #34453d;border-radius:10px;padding:12px;min-height:96px}
+.stage strong,.stage b,.stage span{display:block}.stage strong{font-size:12px;color:#b9c9c1}
+.stage b{font-size:21px;color:#d6ee52;margin:4px 0}.stage span{font-size:11px;color:#edf3ee}
+.evaluation-comparison table,.evaluation-games table{width:100%;border-collapse:collapse;background:#14231f;color:#edf3ee;font-size:12px}
+.evaluation-comparison th,.evaluation-comparison td,.evaluation-games th,.evaluation-games td{padding:7px 8px;border:1px solid #34453d;text-align:left}
+.evaluation-games{height:350px;overflow:auto;border:1px solid #34453d;border-radius:8px}
+.evaluation-games thead th{position:sticky;top:0;background:#24372d;z-index:1}
+[data-testid="stPopoverBody"] a{color:#edf3ee;text-decoration:none}
+[data-testid="stPopoverBody"] a:hover{color:#d6ee52;text-decoration:underline}
