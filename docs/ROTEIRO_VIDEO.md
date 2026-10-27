@@ -7,8 +7,8 @@ Grave com seu rosto visível e boa iluminação. Use sua própria explicação e
 | 0:00–0:50 | Apresentar Radar do Brasileirão: público, pergunta respondida e benefício. |
 | 0:50–1:40 | Mostrar Kaggle, versão 18, 9.165 registros originais e data final de 07/12/2025. Explicar as duas linhas ambíguas excluídas. |
 | 1:40–2:40 | Explicar histórico anterior ao jogo, janelas 5/10, mando e Elo. Mostrar por que não usamos placar do próprio jogo como entrada. |
-| 2:40–3:50 | Mostrar reports/METRICAS.md: treino, validação, teste e comparação com baseline. Explicar que acurácia não significa certeza. |
-| 3:50–5:20 | Escolher clubes na tela, analisar e comparar probabilidades, aproveitamento e confrontos diretos. Destacar a data da base. |
+| 2:40–3:50 | Abrir ⚙️ → Avaliação dos modelos. Mostrar treino 2003–2020, validação 2021–2022, teste 2023–2024, acertos/erros e uma partida real. Diferenciar o experimento do modelo retreinado até 2025. |
+| 3:50–5:20 | Escolher clubes na tela, analisar e comparar probabilidades, aproveitamento e confrontos diretos. Destacar a data da base e explicar que Simulação de temporada é um cenário hipotético, não previsão de ano futuro. |
 | 5:20–6:30 | Swagger: executar /health, /v1/teams e /v1/predict. Demonstrar erro 400 com clubes iguais e 422 com tipo incorreto. |
 | 6:30–7:20 | Mostrar schemas/services/routers/main e explicar carregamento único no lifespan. |
 | 7:20–8:10 | Explicar ambiente virtual, requirements.txt, download e run.py. Mostrar testes executados. |

@@ -107,7 +107,7 @@ reorganizam e a rolagem é preservada quando necessária para não cortar conte�
 - A sequência V/E/D vai do jogo mais antigo ao mais recente: vitória, empate e derrota.
 - Percentuais exatos somam 100%; valores arredondados podem diferir em 0,1 ponto percentual.
 - As probabilidades não incorporam fatos posteriores à data informada no rodapé, nem escalações ou lesões.
-- O menu **⋮** contém o README para leitura e atalhos para a documentação interativa, o estado do serviço e os clubes da API. Explicações ficam neste documento.
+- O menu **⚙️** contém o README para leitura e atalhos para a documentação interativa, o estado do serviço e os clubes da API. Explicações ficam neste documento.
 
 Deploy, captura de tela e gravação eram controles de desenvolvimento do Streamlit. Foram removidos da
 interface de uso, substituindo o menu padrão por um menu próprio em português. A captura não é necessária
@@ -175,29 +175,23 @@ Entrega no AVA: GitHub público e vídeo de até dez minutos, até 03/11/2026, c
 Confirmar horário no AVA. Não modificar a versão submetida antes da avaliação.
 
 
-## Como simulo os próximos campeonatos
+## Simulação de temporada
 
-Escolho um dos cinco anos seguintes ao ano atual e clico em **Simular campeonato**.
-Uso os clubes da última temporada importada em turno e returno: 380 jogos, 38 rodadas,
-19 partidas em casa e 19 fora para cada clube. Mostro uma rodada por segundo, em cerca de
-38 segundos após a consulta à API. A tabela mantém seu tamanho enquanto reordeno as equipes.
+Clico em **Simular temporada** para sortear os 380 jogos de turno e returno dos clubes da
+temporada mais recente disponível: 38 rodadas, 19 partidas em casa e 19 fora por equipe.
+Mostro uma rodada por segundo após a consulta à API. O painel mantém suas dimensões.
 
-Para cada confronto, sorteio vitória, empate ou derrota com as probabilidades do pipeline
-treinado. Mantenho a força histórica constante; não alimento o modelo com partidas fictícias.
-O ano identifica o cenário, não modifica a força dos clubes. Não projeto transferências,
-acesso, rebaixamento ou o calendário oficial. Cada clique usa uma nova semente aleatória.
-Isso é uma simulação exploratória, não uma previsão validada para os próximos cinco anos.
+Uso as probabilidades do modelo selecionado e mantenho a força histórica constante.
+Não alimento o modelo com partidas fictícias. Não projeto acesso, rebaixamento, mudanças
+de elenco ou um ano futuro específico. Cada clique usa uma nova semente aleatória.
 
-Uso três pontos por vitória e um por empate. Ordeno por pontos e vitórias; nos empates
-restantes, uso o identificador do clube para uma ordem estável. Não simulo placares e,
-por isso, não aplico saldo de gols nem todos os critérios oficiais de desempate.
+Uso três pontos por vitória e um por empate. Ordeno por pontos, vitórias e identificador
+do clube. Não simulo placares, saldo de gols nem todos os critérios oficiais de desempate.
 P = pontos; J = jogos; V = vitórias; E = empates; D = derrotas.
 
-`POST /v1/simulate` recebe `year` e `seed` (inteiro entre 0 e 4294967295).
-Devolvo as tabelas das rodadas, a semente, o algoritmo e a versão do modelo e a data dos dados.
-Com a mesma semente e os mesmos artefatos, reproduzo o resultado. A animação acontece
-na interface; a API não fica esperando os 38 segundos.
-
+`POST /v1/simulate` recebe `seed` e, opcionalmente, `model_id`. O campo legado `year`
+é opcional e serve somente como rótulo; não altera resultados. A animação fica na interface,
+sem manter a API esperando 38 segundos. Com a mesma semente e modelo, reproduzo o resultado.
 
 ## Escolha do modelo
 
@@ -216,3 +210,34 @@ Os resultados do teste 2023–2024 já tinham sido consultados na versão anteri
 Posso enviar `model_id` em `/v1/predict` e `/v1/simulate`: `regressao_logistica`,
 `arvore_decisao` ou `random_forest`. Se omitir, uso o padrão. IDs desconhecidos retornam 400;
 tipos inválidos retornam 422. `/v1/teams` informa o catálogo e o modelo padrão.
+
+
+## Avaliação visível na aplicação
+
+Abro **⚙️ → Avaliação dos modelos** para consultar acertos, erros, acurácia, F1 macro,
+log loss e as previsões individuais do teste. Os filtros não alteram os indicadores do teste completo.
+
+| Etapa | Temporadas | Uso |
+|---|---|---|
+| Treino experimental | 2003–2020 | Ajustar modelos e pré-processamento |
+| Validação | 2021–2022 | Comparar e selecionar pelo menor log loss |
+| Teste histórico | 2023–2024 | Medir desempenho fora dos dados de ajuste |
+| Modelo da análise e simulação | 2003–2025 | Retreinar os três modelos para uso |
+
+As divisões usam temporadas; 2020 inclui jogos realizados em 2021. Salvo as previsões de
+teste antes do retreinamento de produção. Os indicadores avançam somente após cada dia,
+sem incorporar resultados futuros. O desempate de probabilidades exatamente iguais usa
+a ordem A, D, H do classificador. Acertar o resultado não significa acertar o placar.
+
+O relatório `reports/evaluation.json` reúne identificação do experimento, períodos, métricas
+e partidas. Valido probabilidades, placares, contagens e métricas antes de publicá-lo.
+Esta é uma comparação retrospectiva; os resultados do teste já foram consultados em versões
+anteriores. Não utilizo os modelos retreinados até 2025 para anunciar acertos em 2023–2024.
+
+`GET /v1/evaluation?model_id=regressao_logistica` retorna o relatório do modelo e a comparação
+dos três classificadores com as frequências históricas. O relatório é carregado no lifespan.
+Modelo desconhecido retorna 400; relatório ausente ou incompatível retorna 503 sem interromper
+`/health` ou a análise de confrontos. Para regenerar, executo `python -m radar.train` e reinicio a API.
+
+Deixei para depois a configuração de modelos pela tela, a importação de 2026 e a previsão
+de placar exato. O foco desta entrega é a API, a avaliação histórica e a documentação.

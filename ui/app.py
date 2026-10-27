@@ -2,13 +2,12 @@ import os
 import re
 import secrets
 import time
-from datetime import datetime
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 import requests
 import streamlit as st
 
+from ui.evaluation import render_evaluation
 from ui.presentation import dashboard, display_name, standings
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -59,13 +58,30 @@ with model_control:
         help="Modelo usado no confronto e no campeonato",
     )
 with menu:
-    with st.popover("⋮", help="Menu do projeto", use_container_width=True):
-        if st.button("Ler README", use_container_width=True):
+    with st.popover(
+        " ",
+        icon=":material/settings:",
+        help="Menu do projeto",
+        use_container_width=True,
+        key=f"project_menu_{st.session_state.get('page', 'analysis')}",
+    ):
+        if st.button("Avaliação dos modelos", type="tertiary"):
+            st.session_state.page = "evaluation"
+            st.rerun()
+        if st.button("README", type="tertiary"):
             show_readme()
-        st.link_button("API · documentação interativa", f"{API}/docs")
-        st.link_button("API · estado do serviço", f"{API}/health")
-        st.link_button("API · clubes disponíveis", f"{API}/v1/teams")
+        st.markdown(f"[API · documentação interativa]({API}/docs)")
+        st.markdown(f"[API · estado do serviço]({API}/health)")
+        st.markdown(f"[API · clubes disponíveis]({API}/v1/teams)")
 
+
+# Preservo os valores dos seletores quando seus widgets não estão na página de avaliação.
+for saved_key in ("home", "away"):
+    if saved_key in st.session_state:
+        st.session_state[saved_key] = st.session_state[saved_key]
+if st.session_state.get("page") == "evaluation":
+    render_evaluation(API, model_id)
+    st.stop()
 
 labels = {team["id"]: display_name(team["id"], team["name"]) for team in catalog["teams"]}
 ids = list(labels)
@@ -122,13 +138,9 @@ with analysis_column:
 
 
 with season_column:
-    year_column, run_column = st.columns([1, 1.7], vertical_alignment="bottom")
-    with year_column:
-        current_year = datetime.now(ZoneInfo("America/Sao_Paulo")).year
-        selected_year = st.selectbox("Ano", range(current_year + 1, current_year + 6))
-    with run_column:
-        run_simulation = st.button("Simular campeonato", type="primary", use_container_width=True)
-    simulation_key = (selected_year, catalog["data_through"], tuple(ids), model_id)
+    st.markdown('<div class="simulation-control-label">Temporada hipotética</div>', unsafe_allow_html=True)
+    run_simulation = st.button("Simular temporada", type="primary", use_container_width=True)
+    simulation_key = (catalog["data_through"], tuple(ids), model_id)
     if st.session_state.get("simulation_key") != simulation_key:
         st.session_state.pop("simulation", None)
         st.session_state.simulation_key = simulation_key
@@ -141,6 +153,7 @@ with season_column:
             labels,
             len(simulation["rounds"]) if simulation else 0,
             2 * (len(ids) - 1),
+            catalog["season"],
         ),
         unsafe_allow_html=True,
     )
@@ -148,7 +161,7 @@ with season_column:
         try:
             response = requests.post(
                 f"{API}/v1/simulate",
-                json={"year": selected_year, "seed": secrets.randbits(32), "model_id": model_id},
+                json={"seed": secrets.randbits(32), "model_id": model_id},
                 timeout=30,
             )
             response.raise_for_status()
@@ -157,7 +170,8 @@ with season_column:
             for index, rows in enumerate(simulation["rounds"], 1):
                 time.sleep(max(0, start_time + index - time.monotonic()))
                 placeholder.markdown(
-                    standings(rows, labels, index, len(simulation["rounds"])), unsafe_allow_html=True
+                    standings(rows, labels, index, len(simulation["rounds"]), catalog["season"]),
+                    unsafe_allow_html=True,
                 )
             st.session_state.simulation = simulation
         except (requests.RequestException, ValueError):

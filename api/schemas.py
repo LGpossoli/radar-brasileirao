@@ -103,7 +103,7 @@ class Teams(Contract):
 
 class SimulationInput(Contract):
     model_id: str | None = Field(default=None, strict=True, min_length=1, max_length=60)
-    year: int = Field(strict=True)
+    year: int | None = Field(default=None, strict=True)
     seed: int = Field(strict=True, ge=0, le=4294967295)
 
     @model_validator(mode="after")
@@ -111,6 +111,8 @@ class SimulationInput(Contract):
         from datetime import datetime
         from zoneinfo import ZoneInfo
 
+        if self.year is None:
+            return self
         current = datetime.now(ZoneInfo("America/Sao_Paulo")).year
         if not current < self.year <= current + 5:
             raise ValueError("Escolha um dos próximos cinco anos.")
@@ -128,7 +130,7 @@ class Standing(Contract):
 
 class Simulation(Contract):
     model_id: str
-    year: int
+    year: int | None
     seed: int
     rounds: list[list[Standing]]
     model_name: str

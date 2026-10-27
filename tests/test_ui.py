@@ -16,7 +16,9 @@ def fake_api(service, monkeypatch):
         response = Mock()
         data = kwargs["json"]
         if args[0].endswith("/v1/simulate"):
-            response.json.return_value = service.simulate(data["year"], data["seed"], data.get("model_id"))
+            response.json.return_value = service.simulate(
+                data.get("year"), data["seed"], data.get("model_id")
+            )
         else:
             response.json.return_value = service.predict(
                 data["home_team_id"], data["away_team_id"], data.get("model_id")
@@ -71,7 +73,7 @@ def test_same_team_clears_previous_analysis(service, monkeypatch):
 def test_readme_opens_in_project_menu(service, monkeypatch):
     fake_api(service, monkeypatch)
     app = AppTest.from_file(str(ROOT / "ui" / "app.py")).run()
-    button(app, "Ler README").click().run()
+    button(app, "README").click().run()
     assert not app.exception
     assert any("## Instalação" in item.value for item in app.markdown)
 
@@ -103,19 +105,18 @@ def test_percentages_use_brazilian_decimal_separator(service):
     assert "50.0%" not in html
 
 
-def test_simulation_renders_and_year_change_resets_it(service, monkeypatch):
+def test_simulation_renders_without_year_selector(service, monkeypatch):
     import time
 
     fake_api(service, monkeypatch)
     monkeypatch.setattr(time, "sleep", lambda seconds: None)
     app = AppTest.from_file(str(ROOT / "ui" / "app.py")).run()
-    button(app, "Simular campeonato").click().run()
+    button(app, "Simular temporada").click().run()
     assert not app.exception
     assert any("Rodada 2 de 2" in item.value for item in app.markdown)
     assert app.session_state["simulation"]["model_name"] == "Frequências históricas"
-    app.selectbox[3].select(app.selectbox[3].value + 1).run()
-    assert not app.exception
-    assert any("Rodada 0 de 2" in item.value for item in app.markdown)
+    assert len(app.selectbox) == 3
+    assert any("clubes de 2021" in item.value for item in app.markdown)
 
 
 def test_pie_has_no_internal_stroke(service):
@@ -131,11 +132,63 @@ def test_switching_model_updates_prediction_and_clears_simulation(service, monke
     fake_api(service, monkeypatch)
     monkeypatch.setattr(time, "sleep", lambda seconds: None)
     app = AppTest.from_file(str(ROOT / "ui" / "app.py")).run()
-    button(app, "Simular campeonato").click().run()
+    button(app, "Simular temporada").click().run()
     assert app.session_state["simulation"]["model_id"] == "frequencias"
     app.selectbox(key="model_id").select("arvore_decisao").run()
     assert not app.exception
     assert app.session_state["analysis"]["model_id"] == "arvore_decisao"
     assert any("Rodada 0 de 2" in item.value for item in app.markdown)
-    button(app, "Simular campeonato").click().run()
+    button(app, "Simular temporada").click().run()
     assert app.session_state["simulation"]["model_id"] == "arvore_decisao"
+
+
+def test_evaluation_navigation_preserves_clubs_and_filters(monkeypatch):
+    from api.evaluation_schemas import EvaluationResponse
+    from api.services import PredictionService
+
+    service = PredictionService()
+    fake_api(service, monkeypatch)
+
+    def get(url, **kwargs):
+        result = Mock()
+        if url.endswith("/v1/evaluation"):
+            data = service.evaluation(kwargs["params"]["model_id"])
+            result.json.return_value = EvaluationResponse.model_validate(data).model_dump(mode="json")
+        else:
+            result.json.return_value = service.teams()
+        return result
+
+    monkeypatch.setattr(requests, "get", get)
+    app = AppTest.from_file(str(ROOT / "ui/app.py")).run()
+    app.selectbox(key="home").select("santos").run()
+    button(app, "Avaliação dos modelos").click().run()
+    assert not app.exception
+    assert any("2003–2020" in item.value for item in app.markdown)
+    assert app.metric[0].value == "760"
+    app.selectbox(key="eval_outcome").select("Erros").run()
+    assert app.metric[0].value == "760"
+    app.selectbox(key="model_id").select("random_forest").run()
+    assert not app.exception
+    button(app, "← Voltar à análise").click().run()
+    assert not app.exception
+    assert app.selectbox(key="home").value == "santos"
+    assert app.selectbox(key="model_id").value == "random_forest"
+
+
+def test_evaluation_unavailable_keeps_back_navigation(service, monkeypatch):
+    fake_api(service, monkeypatch)
+    app = AppTest.from_file(str(ROOT / "ui/app.py")).run()
+    catalog_get = requests.get
+
+    def get(url, **kwargs):
+        if url.endswith("/v1/evaluation"):
+            raise requests.HTTPError("503")
+        return catalog_get(url, **kwargs)
+
+    monkeypatch.setattr(requests, "get", get)
+    button(app, "Avaliação dos modelos").click().run()
+    assert not app.exception
+    assert "indisponível" in app.warning[0].value
+    button(app, "← Voltar à análise").click().run()
+    assert not app.exception
+    assert any('class="prob-chart"' in item.value for item in app.markdown)
