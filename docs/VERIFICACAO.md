@@ -49,3 +49,13 @@ Validação desta revisão: 34 testes aprovados e ruff sem erros. Conferi a tela
 Ajuste de espaço: concentrei os controles de confronto nas três primeiras colunas e subi os controles da simulação. A tabela do campeonato ganhou altura e fonte maior, sem alteração dos modelos.
 
 Revisão dos três modelos: 37 testes aprovados. Conferi o alinhamento dos quatro painéis em 1280 × 720 e a troca de Regressão Logística para Random Forest na interface, com mudança das probabilidades. Os testes verificam os três modelos serializados, a seleção na API e a limpeza da simulação ao trocar o algoritmo.
+
+
+## Revisão de 26/10/2026 — avaliação histórica visível
+
+51 testes aprovados. O relatório validado contém 760 partidas de teste por modelo,
+previstas antes do retreinamento de produção. As contagens e métricas reproduzem os relatórios anteriores.
+Testei filtros, troca de modelo, retorno à análise preservando clubes e relatório ausente/incompatível.
+O endpoint de avaliação retorna 503 sem derrubar a análise de confrontos nesses casos.
+Renomeei o painel para Simulação de temporada e removi o seletor de anos futuros.
+O menu da engrenagem abre a avaliação, o README e os atalhos da API.
