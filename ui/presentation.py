@@ -3,6 +3,8 @@
 import math
 from html import escape
 
+DRAW_COLOR = "#89979f"
+
 PALETTES = {
     "atletico-mg": ["#181818", "#ffffff"],
     "bahia": ["#1468c6", "#df2638", "#ffffff"],
@@ -60,9 +62,11 @@ def team_colors(home, away):
     def distance(a, b):
         return math.sqrt(sum((x - y) ** 2 for x, y in zip(rgb(a), rgb(b))))
 
-    if distance(first[0], second[0]) >= 0.52:
-        return first[0], second[0]
-    return max(((a, b) for a in first for b in second), key=lambda pair: distance(*pair))
+    # Mantenho a cor principal do mandante e só adapto a do visitante se houver conflito.
+    for color in second:
+        if distance(first[0], color) >= 0.30:
+            return first[0], color
+    return first[0], max(second, key=lambda color: distance(first[0], color))
 
 
 def number(value, digits=1, suffix=""):
@@ -112,7 +116,7 @@ def dashboard(result):
     hc, ac = team_colors(home["team_id"], away["team_id"])
     labels = [f"Vitória do {hn}", "Empate", f"Vitória do {an}"]
     probs = [result["probabilities"][key] for key in ("home_win", "draw", "away_win")]
-    colors = [hc, "#89979f", ac]
+    colors = [hc, DRAW_COLOR, ac]
     legend = "".join(
         f'<div class="legend-row"><span class="swatch" style="background:{c}"></span>'
         f"<span>{escape(label)}</span><strong>{number(p * 100)}%</strong></div>"

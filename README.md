@@ -1,7 +1,8 @@
 # Radar do Brasileirão
 
 Neste projeto, comparo clubes da Série A e exploro probabilidades de vitória do mandante, empate e vitória do visitante.
-Aplicação em Python para torcedores e criadores de conteúdo, com painel Streamlit e API FastAPI.
+Meu objetivo é reunir o histórico dos clubes em uma tela simples, para ajudar torcedores e criadores de conteúdo
+a comparar os confrontos. Uso Python, com painel Streamlit e API FastAPI.
 
 **Dados até 07/12/2025.** As estimativas representam esse histórico, não a força atual dos clubes em 2026.
 Os clubes selecionáveis pertencem à edição mais recente disponível na base.
@@ -93,14 +94,15 @@ a inicialização com instrução clara. Apenas artefatos joblib locais e confi�
 
 ## Interface e leitura dos indicadores
 
-Organizei a tela em quatro áreas: probabilidades, desempenho, confrontos diretos e simulação de campeonatos.
+Organizei a tela em quatro áreas: probabilidades, desempenho, confrontos diretos e simulação de temporada.
 Em um monitor de 1280 × 720, o painel principal foi conferido sem rolagem. Em telas menores, as áreas se
 reorganizam e a rolagem é preservada quando necessária para não cortar conteúdo ou reduzir sua legibilidade.
 
 - Escolher um clube atualiza a análise. **Inverter** troca mandante e visitante e recalcula imediatamente.
 - **Analisar** força uma nova consulta para a seleção atual.
-- O gráfico de pizza em rosca usa as cores dos clubes; quando as principais são próximas, escolhe cores
-  secundárias da paleta de cada equipe. Empate usa cinza. Os rótulos continuam distinguindo os resultados.
+- No gráfico, mantenho o empate sempre cinza e uso a cor principal de cada clube. Quando as cores são
+  parecidas, mantenho a do mandante e uso uma cor secundária do visitante. Por exemplo, Vasco × Botafogo
+  fica preto e branco. Os rótulos identificam cada resultado, sem depender apenas das cores.
 - Percentuais usam vírgula decimal. Textos das fatias alternam entre branco e preto para contraste mínimo de 4,5:1.
 - Aproveitamento é a porcentagem dos pontos possíveis. Gols são médias por partida.
 - “No mando” significa jogos em casa para o mandante e fora para o visitante, nos últimos dez disponíveis.
@@ -108,10 +110,6 @@ reorganizam e a rolagem é preservada quando necessária para não cortar conte�
 - Percentuais exatos somam 100%; valores arredondados podem diferir em 0,1 ponto percentual.
 - As probabilidades não incorporam fatos posteriores à data informada no rodapé, nem escalações ou lesões.
 - O menu **⚙️** contém o README para leitura e atalhos para a documentação interativa, o estado do serviço e os clubes da API. Explicações ficam neste documento.
-
-Deploy, captura de tela e gravação eram controles de desenvolvimento do Streamlit. Foram removidos da
-interface de uso, substituindo o menu padrão por um menu próprio em português. A captura não é necessária
-para funcionamento do Radar. O gráfico não contém barra de ferramentas em inglês.
 
 ## Modelo e avaliação
 
@@ -121,7 +119,8 @@ Os jogos do mesmo dia são processados em bloco, evitando vazamento entre eles.
 
 Treino: **2003–2020**; validação: **2021–2022**; teste: **2023–2024**.
 Comparação: frequências históricas, Regressão Logística, Árvore de Decisão e Random Forest, com parâmetros fixos.
-Escolho pelo menor log loss na validação. Reservo o teste para a avaliação final.
+Escolho pelo menor log loss na validação. Uso o teste para medir o desempenho fora do ajuste;
+como seus resultados já foram consultados em versões anteriores, apresento a comparação como retrospectiva.
 
 Veja [métricas reais](reports/METRICAS.md), [relatório completo](reports/metrics.json) e
 [gráfico de calibração](reports/calibration.html). O artefato de produção é retreinado até 2025;
@@ -170,9 +169,9 @@ Consulte [decisões e etapas](docs/PLANO_E_DECISOES.md) e [roteiro do vídeo](do
 Fluxo: branches de funcionalidade → `develop` → `main`, com PRs e branches preservadas.
 Usei assistência de IA no desenvolvimento; o enunciado contém restrições a esse uso.
 
-**Vídeo no Google Drive: pendente de gravação pelo aluno.** Inserir o link real antes da submissão.
+**Vídeo no Google Drive: ainda preciso gravar e inserir o link aqui antes da entrega.**
 Entrega no AVA: GitHub público e vídeo de até dez minutos, até 03/11/2026, conforme o prazo que defini para a entrega.
-Confirmar horário no AVA. Não modificar a versão submetida antes da avaliação.
+Antes de enviar, preciso confirmar o horário no AVA. Depois da submissão, manterei essa versão sem alterações até a avaliação.
 
 
 ## Simulação de temporada
@@ -196,7 +195,7 @@ sem manter a API esperando 38 segundos. Com a mesma semente e modelo, reproduzo 
 ## Escolha do modelo
 
 No seletor do cabeçalho, escolho Regressão Logística, Árvore de Decisão ou Random Forest.
-A seleção vale para o confronto e para o campeonato. Ao trocar, recalculo o confronto e
+A seleção vale para o confronto, a avaliação e a simulação de temporada. Ao trocar, recalculo o confronto e
 limpo a simulação anterior. Os três pipelines ficam carregados em memória; a seleção de
 um usuário não altera a de outro. O treinamento continua sendo feito pelo comando `python -m radar.train`.
 
