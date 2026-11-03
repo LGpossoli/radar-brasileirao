@@ -17,10 +17,26 @@ st.set_option("client.toolbarMode", "minimal")
 st.markdown(f"<style>{(ROOT / 'ui/style.css').read_text(encoding='utf-8')}</style>", unsafe_allow_html=True)
 
 
-@st.dialog("README — Radar do Brasileirão", width="large", dismissible=False)
+def close_menu():
+    st.session_state.menu_revision = st.session_state.get("menu_revision", 0) + 1
+
+
+def open_readme():
+    close_menu()
+    st.session_state.readme_open = True
+
+
+def dismiss_readme():
+    st.session_state.readme_open = False
+
+
+def navigate(page):
+    close_menu()
+    st.session_state.page = page
+
+
+@st.dialog("README — Radar do Brasileirão", width="large", dismissible=True, on_dismiss=dismiss_readme)
 def show_readme():
-    if st.button("Fechar README"):
-        st.rerun()
     content = (ROOT / "README.md").read_text(encoding="utf-8")
     content = re.sub(
         r"\]\(((?:docs|reports)/[^)]+)\)",
@@ -39,7 +55,13 @@ except (requests.RequestException, ValueError):
     st.stop()
 
 
-title, model_control, menu = st.columns([12, 4, 0.8], vertical_alignment="center")
+is_evaluation = st.session_state.get("page") == "evaluation"
+if is_evaluation:
+    title, navigation, model_control, menu = st.columns([9, 2.7, 4, 0.8], vertical_alignment="center")
+    with navigation:
+        st.button("← Voltar à análise", on_click=navigate, args=("analysis",), use_container_width=True)
+else:
+    title, model_control, menu = st.columns([12, 4, 0.8], vertical_alignment="center")
 with title:
     st.markdown(
         '<div class="brand"><span class="brand-mark">◉</span><h1>Radar do Brasileirão</h1>'
@@ -63,16 +85,40 @@ with menu:
         icon=":material/settings:",
         help="Menu do projeto",
         use_container_width=True,
-        key=f"project_menu_{st.session_state.get('page', 'analysis')}",
+        key=f"project_menu_{st.session_state.get('menu_revision', 0)}",
     ):
-        if st.button("Avaliação dos modelos", type="tertiary"):
-            st.session_state.page = "evaluation"
-            st.rerun()
-        if st.button("README", type="tertiary"):
-            show_readme()
-        st.markdown(f"[API · documentação interativa]({API}/docs)")
-        st.markdown(f"[API · estado do serviço]({API}/health)")
-        st.markdown(f"[API · clubes disponíveis]({API}/v1/teams)")
+        st.button(
+            "Avaliação dos modelos",
+            type="tertiary",
+            use_container_width=True,
+            on_click=navigate,
+            args=("evaluation",),
+        )
+        st.button("README", type="tertiary", use_container_width=True, on_click=open_readme)
+        st.link_button(
+            "API · documentação interativa",
+            f"{API}/docs",
+            type="tertiary",
+            use_container_width=True,
+            on_click=close_menu,
+        )
+        st.link_button(
+            "API · estado do serviço",
+            f"{API}/health",
+            type="tertiary",
+            use_container_width=True,
+            on_click=close_menu,
+        )
+        st.link_button(
+            "API · clubes disponíveis",
+            f"{API}/v1/teams",
+            type="tertiary",
+            use_container_width=True,
+            on_click=close_menu,
+        )
+
+if st.session_state.get("readme_open"):
+    show_readme()
 
 
 # Preservo os valores dos seletores quando seus widgets não estão na página de avaliação.
@@ -80,7 +126,8 @@ for saved_key in ("home", "away"):
     if saved_key in st.session_state:
         st.session_state[saved_key] = st.session_state[saved_key]
 if st.session_state.get("page") == "evaluation":
-    render_evaluation(API, model_id)
+    with st.container(key="evaluation-page"):
+        render_evaluation(API, model_id)
     st.stop()
 
 labels = {team["id"]: display_name(team["id"], team["name"]) for team in catalog["teams"]}
