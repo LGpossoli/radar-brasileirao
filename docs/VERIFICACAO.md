@@ -59,3 +59,10 @@ Testei filtros, troca de modelo, retorno à análise preservando clubes e relat�
 O endpoint de avaliação retorna 503 sem derrubar a análise de confrontos nesses casos.
 Renomeei o painel para Simulação de temporada e removi o seletor de anos futuros.
 O menu da engrenagem abre a avaliação, o README e os atalhos da API.
+
+## Revisão de UX — 03/11/2026
+
+Padronizei tipografia, alinhamento, espaçamento e estados dos itens do menu. O README fecha pelo X e sua abertura recolhe o menu. Posicionei o retorno à análise ao lado do seletor de modelo e corrigi margens negativas na avaliação. Conferi o painel em 1280 × 720, a abertura e fechamento do README e o retorno preservando os clubes. Mantive a altura fixa da tabela de partidas e a rolagem da avaliação.
+
+Validação: 13 testes da interface aprovados e ruff sem erros. Nenhum modelo ou métrica foi alterado.
+

@@ -28,10 +28,7 @@ def filtered_matches(matches, season, club, outcome):
 
 
 def render_evaluation(api, model_id):
-    if st.button("← Voltar à análise"):
-        st.session_state.page = "analysis"
-        st.rerun()
-    st.markdown("## Avaliação dos modelos")
+    st.markdown('<h2 class="evaluation-title">Avaliação dos modelos</h2>', unsafe_allow_html=True)
     try:
         response = requests.get(f"{api}/v1/evaluation", params={"model_id": model_id}, timeout=20)
         response.raise_for_status()
