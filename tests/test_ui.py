@@ -192,3 +192,27 @@ def test_evaluation_unavailable_keeps_back_navigation(service, monkeypatch):
     button(app, "← Voltar à análise").click().run()
     assert not app.exception
     assert any('class="prob-chart"' in item.value for item in app.markdown)
+
+
+def test_vasco_keeps_primary_colors_against_distinct_clubs():
+    for other in ("flamengo", "palmeiras", "cruzeiro", "santos"):
+        assert team_colors("vasco", other) == (PALETTES["vasco"][0], PALETTES[other][0])
+        assert team_colors(other, "vasco") == (PALETTES[other][0], PALETTES["vasco"][0])
+
+
+def test_black_and_white_clubs_keep_home_primary_and_change_only_visitor():
+    assert team_colors("vasco", "botafogo-rj") == ("#181818", "#ffffff")
+    assert team_colors("botafogo-rj", "vasco") == ("#181818", "#ffffff")
+    assert team_colors("santos", "corinthians") == ("#ffffff", "#181818")
+
+
+def test_draw_remains_gray_for_every_club(service):
+    import re
+
+    result = service.predict("flamengo", "santos")
+    for club in PALETTES:
+        result["home"]["team_id"] = club
+        result["home"]["name"] = club
+        html = dashboard(result)
+        fills = re.findall(r'<path [^>]*fill="(#[a-f0-9]+)"', html)
+        assert fills[1] == "#89979f"

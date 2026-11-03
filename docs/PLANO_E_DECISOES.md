@@ -8,7 +8,7 @@
 ## Decisões registradas
 
 - Python 3.12; FastAPI e Streamlit, toda lógica escrita em Python.
-- Fonte única escolhida pelo usuário: Kaggle / Adão Duque. A versão 18 é mais recente que o espelho GitHub.
+- Escolhi uma única fonte: Kaggle / Adão Duque. A versão 18 é mais recente que o espelho GitHub.
 - Original: 9.165 partidas até 07/12/2025. Uso: 9.163 após quarentena de IDs 2826 e 3016.
 - Esses dois registros descrevem Botafogo-RJ como mandante contra Flamengo na mesma temporada de 2009.
   Sem fonte de correção confirmada, ambos ficam fora do modelo. O CSV original é preservado localmente.
@@ -19,9 +19,9 @@
 - A atualização troca um ponteiro de snapshot com operação atômica. Falha de download ou validação mantém a versão anterior.
 - API lê artefatos apenas no lifespan. Atualizações exigem reiniciar; retreinamento é um comando independente.
 - Sem endpoint público de atualização, credenciais Kaggle ou dados brutos no Git.
-- Publicação no site pessoal foi adiada pelo usuário; entrega executável local, GitHub público e vídeo no Drive.
-- A geração assistida de código foi solicitada explicitamente pelo usuário. O enunciado limita esse uso;
-  esta documentação não afirma autoria exclusivamente manual nem conformidade com essa restrição.
+- Adiei a publicação no meu site pessoal. Nesta entrega, uso execução local, GitHub público e vídeo no Drive.
+- Usei assistência de IA no desenvolvimento. O enunciado limita esse uso; não apresento o código como
+  produção exclusivamente manual nem afirmo conformidade com essa restrição.
 
 ## Fluxo Git
 

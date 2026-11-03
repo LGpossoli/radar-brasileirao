@@ -21,10 +21,10 @@ Acurácia no teste: 47,5%. Log loss: 1,0388 versus 1,0613 do baseline.
 O modelo não escolheu empate como classe mais provável no conjunto de teste.
 As probabilidades se referem ao histórico até 07/12/2025, não a partidas atuais de 2026.
 
-## Pendências que dependem do aluno
+## O que ainda preciso entregar
 
-Gravar o vídeo com apresentação pessoal, disponibilizá-lo no Google Drive, inserir o link no README
-e submeter ambos os links no AVA. O repositório não constitui submissão automática no AVA.
+Ainda preciso gravar o vídeo com minha apresentação, disponibilizá-lo no Google Drive, inserir o link no README
+e enviar ambos os links no AVA. O repositório não constitui submissão automática no AVA.
 Não foi publicado no site pessoal, conforme decisão de deixar essa etapa para depois.
 
 ## Revisão da interface
@@ -66,3 +66,9 @@ Padronizei tipografia, alinhamento, espaçamento e estados dos itens do menu. O 
 
 Validação: 13 testes da interface aprovados e ruff sem erros. Nenhum modelo ou métrica foi alterado.
 
+
+## Cores dos clubes e documentação — 03/11/2026
+
+Mantive o empate cinza e as cores principais dos clubes. Quando há conflito, uso uma cor secundária do visitante, preservando a principal do mandante. Conferi Vasco × Palmeiras na interface: preto, cinza e verde. Os testes também cobrem confrontos alvinegros e o cinza fixo para todos os clubes.
+
+Suíte completa: 54 testes aprovados, com o aviso de depreciação do TestClient já registrado acima. Ruff sem erros. Revisei README, planejamento e roteiro para usar primeira pessoa e retirei referências ao autor como usuário ou aluno. Mantive o registro da assistência de IA e as limitações da avaliação.

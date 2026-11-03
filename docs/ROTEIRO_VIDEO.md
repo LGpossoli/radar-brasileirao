@@ -1,12 +1,12 @@
 # Roteiro de apresentação — até 10 minutos
 
-Grave com seu rosto visível e boa iluminação. Use sua própria explicação e mostre a aplicação real.
+Vou gravar com meu rosto visível e boa iluminação. Quero explicar as decisões com minhas palavras e mostrar a aplicação funcionando.
 
 | Tempo | Conteúdo e demonstração |
 |---|---|
 | 0:00–0:50 | Apresentar Radar do Brasileirão: público, pergunta respondida e benefício. |
 | 0:50–1:40 | Mostrar Kaggle, versão 18, 9.165 registros originais e data final de 07/12/2025. Explicar as duas linhas ambíguas excluídas. |
-| 1:40–2:40 | Explicar histórico anterior ao jogo, janelas 5/10, mando e Elo. Mostrar por que não usamos placar do próprio jogo como entrada. |
+| 1:40–2:40 | Explicar histórico anterior ao jogo, janelas 5/10, mando e Elo. Mostrar por que não uso o placar do próprio jogo como entrada. |
 | 2:40–3:50 | Abrir ⚙️ → Avaliação dos modelos. Mostrar treino 2003–2020, validação 2021–2022, teste 2023–2024, acertos/erros e uma partida real. Diferenciar o experimento do modelo retreinado até 2025. |
 | 3:50–5:20 | Escolher clubes na tela, analisar e comparar probabilidades, aproveitamento e confrontos diretos. Destacar a data da base e explicar que Simulação de temporada é um cenário hipotético, não previsão de ano futuro. |
 | 5:20–6:30 | Swagger: executar /health, /v1/teams e /v1/predict. Demonstrar erro 400 com clubes iguais e 422 com tipo incorreto. |
